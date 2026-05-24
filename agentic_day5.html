@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic AI - Day 5: Multi-Agent Systems | Content Creation Crew</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #f0f4fa 0%, #e8eef5 100%);
+      color: #0f2b3d;
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* header */
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #1a4d6b, #4a8c7c, #3b8b7c);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #2c6079;
+      max-width: 800px;
+      margin: 0.8rem auto 0;
+    }
+
+    /* theory cards */
+    .theory-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.8rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.92);
+      border-radius: 1.8rem;
+      padding: 1.7rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255,255,255,0.8);
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      background: white;
+      box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      border-left: 5px solid #4a8c7c;
+      padding-left: 0.9rem;
+      color: #0e3b4f;
+    }
+
+    .badge {
+      background: #e0f0f5;
+      padding: 0.25rem 0.9rem;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #1c6e5e;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+
+    .code-snip {
+      background: #0f2027;
+      color: #c9f0f0;
+      padding: 0.8rem;
+      border-radius: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+    }
+
+    /* agent team grid */
+    .agents-showcase {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin: 1.5rem 0;
+    }
+
+    .agent-card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 1rem;
+      flex: 1;
+      min-width: 180px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border-top: 4px solid;
+    }
+
+    .agent-card.researcher { border-top-color: #3b82f6; }
+    .agent-card.writer { border-top-color: #10b981; }
+    .agent-card.editor { border-top-color: #f59e0b; }
+    .agent-card.seo { border-top-color: #8b5cf6; }
+
+    /* demo section */
+    .demo-section {
+      background: white;
+      border-radius: 2rem;
+      padding: 2rem;
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+      margin-top: 1rem;
+      border: 1px solid #dce9f2;
+    }
+
+    .demo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .demo-header h2 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: #1a5f6e;
+    }
+
+    .crew-badge {
+      background: #eafaf7;
+      padding: 0.3rem 1.2rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+
+    .crew-chat {
+      background: #fafdff;
+      border-radius: 1.5rem;
+      padding: 1.2rem;
+      max-height: 500px;
+      overflow-y: auto;
+      border: 1px solid #dee9f0;
+      margin-bottom: 1.5rem;
+    }
+
+    .message {
+      margin-bottom: 1rem;
+    }
+
+    .user-msg {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .user-bubble {
+      background: #1b6b6b;
+      color: white;
+      padding: 0.7rem 1.2rem;
+      border-radius: 1.8rem;
+      max-width: 85%;
+      font-size: 0.9rem;
+    }
+
+    .agent-bubble {
+      background: #eff5fa;
+      color: #1f4457;
+      padding: 0.9rem 1.2rem;
+      border-radius: 1.5rem;
+      border: 1px solid #cde0ea;
+      margin-top: 0.5rem;
+    }
+
+    .handoff-indicator {
+      background: #fef3e8;
+      border-left: 4px solid #f59e0b;
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      margin: 0.5rem 0;
+      font-size: 0.8rem;
+      font-style: italic;
+    }
+
+    .tool-used {
+      background: #eef3fc;
+      padding: 0.2rem 0.6rem;
+      border-radius: 16px;
+      font-family: monospace;
+      font-size: 0.7rem;
+      display: inline-block;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 0.8rem;
+    }
+
+    #topicInput {
+      flex: 1;
+      padding: 0.9rem 1.2rem;
+      border-radius: 2rem;
+      border: 1px solid #cbdde8;
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    #topicInput:focus {
+      border-color: #4a8c7c;
+      box-shadow: 0 0 0 3px rgba(74,140,124,0.2);
+    }
+
+    button {
+      background: #4a8c7c;
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0 2rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #2c6e5e;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 2.5rem;
+      font-size: 0.75rem;
+      color: #6b8ea0;
+    }
+
+    .collab-framework {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+    .framework-item {
+      background: #eef2f7;
+      border-radius: 30px;
+      padding: 0.3rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>🤝 Day 5: Multi-Agent Systems</h1>
+    <p>Single vs. Multiple Agents · Collaboration Frameworks (AutoGen, CrewAI, LangGraph) · Handoffs & Task Delegation</p>
+  </div>
+
+  <!-- Theory Cards: what/why/how/where -->
+  <div class="theory-grid">
+    <div class="card">
+      <div class="badge">👥 Single vs. Multiple Agents</div>
+      <h2>Why Multi-Agent Systems?</h2>
+      <p><strong>Single Agent</strong>: one LLM handles all tasks — simple but limited specialization. <strong>Multi-Agent Systems</strong>: multiple specialized agents collaborate, debate, or delegate. Benefits: modularity, specialization, scalability, and robustness.</p>
+      <p><strong>Where?</strong> Content creation, software development, customer service escalations, scientific research, game AI.</p>
+      <div class="code-snip">
+        // Single agent: all tools + reasoning in one
+        // Multi-agent: Researcher → Writer → Editor → SEO
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="badge">⚙️ Collaboration Frameworks</div>
+      <h2>AutoGen · CrewAI · LangGraph</h2>
+      <p><strong>AutoGen</strong> (Microsoft): conversational agents, human-in-the-loop, customizable.<br>
+      <strong>CrewAI</strong>: role-based agent crews with sequential/ hierarchical workflows.<br>
+      <strong>LangGraph</strong>: graph-based state machines for complex multi-agent loops.</p>
+      <div class="collab-framework">
+        <span class="framework-item">🔁 Handoffs</span>
+        <span class="framework-item">📋 Task Delegation</span>
+        <span class="framework-item">🧠 Supervisor agents</span>
+      </div>
+      <p><strong>How?</strong> Agents communicate via messages, shared memory, or orchestrated pipelines.</p>
+    </div>
+
+    <div class="card">
+      <div class="badge">📝 Use-case: Content Creation Team</div>
+      <h2>Researcher · Writer · Editor · SEO</h2>
+      <p><strong>Task:</strong> Build a CrewAI-style crew that given a topic → Researcher gathers facts → Writer drafts article → Editor polishes → SEO adds keywords and meta tags. Each agent has distinct tools and goals. Demonstrates handoffs and delegation.</p>
+    </div>
+  </div>
+
+  <!-- Agent Team Preview -->
+  <div class="agents-showcase">
+    <div class="agent-card researcher">
+      <div style="font-size: 2rem;">🔍</div>
+      <h3>Researcher</h3>
+      <p style="font-size: 0.75rem;">Gathers facts, data, references</p>
+      <span class="tool-used">🔧 search_web, fetch_papers</span>
+    </div>
+    <div class="agent-card writer">
+      <div style="font-size: 2rem;">✍️</div>
+      <h3>Writer</h3>
+      <p style="font-size: 0.75rem;">Drafts engaging content</p>
+      <span class="tool-used">📝 writing_assistant, grammar</span>
+    </div>
+    <div class="agent-card editor">
+      <div style="font-size: 2rem;">📖</div>
+      <h3>Editor</h3>
+      <p style="font-size: 0.75rem;">Polishes, structure, tone</p>
+      <span class="tool-used">🎨 style_check, readability</span>
+    </div>
+    <div class="agent-card seo">
+      <div style="font-size: 2rem;">📈</div>
+      <h3>SEO Specialist</h3>
+      <p style="font-size: 0.75rem;">Keywords, meta, optimization</p>
+      <span class="tool-used">🔑 keyword_analyzer, meta_tags</span>
+    </div>
+  </div>
+
+  <!-- LIVE DEMO: Multi-Agent Content Crew -->
+  <div class="demo-section">
+    <div class="demo-header">
+      <h2>🎬 Content Creation Crew (CrewAI Style)</h2>
+      <span class="crew-badge">🤖 Researcher → Writer → Editor → SEO</span>
+    </div>
+    <p><strong>Multi-agent collaboration:</strong> Each agent has a specialized role and toolset. The crew leader delegates tasks sequentially. Handoffs happen automatically after each agent completes its subtask. See the crew in action below.</p>
+    <div class="crew-chat" id="crewChat">
+      <div class="message">
+        <div class="agent-bubble">
+          🎬 <strong>Content Crew ready!</strong> Enter a topic (e.g., "Quantum Computing", "Renewable Energy", "AI Ethics") and watch Researcher → Writer → Editor → SEO collaborate.
+        </div>
+      </div>
+    </div>
+    <div class="input-area">
+      <input type="text" id="topicInput" placeholder="e.g., 'Sustainable Agriculture' or 'Blockchain in Healthcare'" autocomplete="off">
+      <button id="runCrewBtn">▶ Launch Crew (Multi-Agent)</button>
+    </div>
+    <div style="font-size: 0.7rem; margin-top: 12px; color: #467a6b;">
+      🔄 <strong>Handoffs & Delegation:</strong> Each agent completes its task and passes context to the next. SEO agent adds final keywords/meta. Simulates CrewAI's sequential workflow.
+    </div>
+  </div>
+  <footer>
+    🧩 Multi-Agent Collaboration | Role-based delegation | Handoffs & sequential processing | Content creation pipeline: Research → Writing → Editing → SEO
+  </footer>
+</div>
+
+<script>
+  // ----------------------------------------------
+  // Multi-Agent Content Crew (simulated CrewAI)
+  // Agents: Researcher, Writer, Editor, SEO Specialist
+  // Each agent has tools & specific output format
+  // Handoff: agent output becomes input for next agent
+  // ----------------------------------------------
+
+  // Helper: Simulate async processing with delay
+  function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+  // AGENT 1: Researcher - gathers facts & key points (simulated web search)
+  class ResearcherAgent {
+    constructor(topic) {
+      this.topic = topic;
+      this.tools = ["search_web", "fetch_academic_papers"];
+    }
+
+    async execute() {
+      // Simulated research data based on topic keywords
+      const researchDB = {
+        "quantum computing": "Quantum computing uses qubits, superposition, entanglement. Key players: IBM, Google, Rigetti. Recent breakthrough: error correction codes. Applications: cryptography, drug discovery.",
+        "renewable energy": "Solar, wind, hydro, geothermal. 2024: solar capacity grew 22%. Key challenges: storage, grid integration. Innovations: perovskite solar cells, floating wind farms.",
+        "ai ethics": "Topics: bias, fairness, transparency, accountability. EU AI Act, responsible AI frameworks. Notable issues: algorithmic discrimination, deepfakes, privacy.",
+        "sustainable agriculture": "Regenerative farming, precision agriculture, vertical farming. Benefits: soil health, water conservation. Tech: IoT sensors, drone monitoring, AI crop management.",
+        "blockchain healthcare": "Secure medical records, supply chain tracking, clinical trials data integrity. Use cases: patient consent management, drug provenance.",
+        "default": "Modern research highlights interdisciplinary approaches, data-driven insights, and emerging technological trends. Key sources include academic journals, industry reports, and expert interviews."
+      };
+      
+      let researchContent = "";
+      for (const [key, value] of Object.entries(researchDB)) {
+        if (this.topic.toLowerCase().includes(key)) {
+          researchContent = value;
+          break;
+        }
+      }
+      if (!researchContent) researchContent = researchDB.default;
+      
+      const output = {
+        agent: "Researcher",
+        toolsUsed: this.tools,
+        findings: researchContent,
+        references: ["arXiv:2401.12345", "Nature 2024", "Industry Report Q2"],
+        summary: `🔍 Research complete for "${this.topic}": ${researchContent.substring(0, 120)}...`
+      };
+      return output;
+    }
+  }
+
+  // AGENT 2: Writer - drafts article based on research findings
+  class WriterAgent {
+    constructor(researchOutput, topic) {
+      this.research = researchOutput;
+      this.topic = topic;
+      this.tools = ["writing_assistant", "grammar_check", "tone_analyzer"];
+    }
+
+    async execute() {
+      const findings = this.research.findings;
+      const draft = `# ${this.topic.charAt(0).toUpperCase() + this.topic.slice(1)}: An In-Depth Analysis\n\n` +
+        `## Introduction\n${this.topic} represents a critical area of innovation. Recent developments have reshaped our understanding.\n\n` +
+        `## Key Insights\n${findings}\n\n` +
+        `## Practical Implications\nThe advancements in ${this.topic} offer tangible benefits across industries. Organizations should monitor emerging trends.\n\n` +
+        `## Future Outlook\nExperts predict accelerated adoption and integration with complementary technologies. Continued research will drive progress.\n\n` +
+        `*Draft prepared by Writer Agent*`;
+      
+      return {
+        agent: "Writer",
+        toolsUsed: this.tools,
+        draftContent: draft,
+        wordCount: draft.split(/\s+/).length,
+        summary: `✍️ Writer drafted ${this.topic} article (${draft.split(/\s+/).length} words)`
+      };
+    }
+  }
+
+  // AGENT 3: Editor - polishes structure, readability, tone
+  class EditorAgent {
+    constructor(writerOutput, topic) {
+      this.draft = writerOutput.draftContent;
+      this.topic = topic;
+      this.tools = ["style_checker", "readability_score", "clarity_enhancer"];
+    }
+
+    async execute() {
+      // Simulate editing: improve headings, fix repetition, add transitions
+      let edited = this.draft.replace("An In-Depth Analysis", "A Comprehensive Guide");
+      edited = edited.replace("represents a critical area", "stands at the forefront of technological evolution");
+      edited = edited.replace(/Recent developments have reshaped our understanding\./g, 
+        "Recent breakthroughs are reshaping our understanding and opening new possibilities.");
+      edited += "\n\n---\n*Edited for clarity, flow, and engagement. Readability score: 8.7/10.*";
+      
+      return {
+        agent: "Editor",
+        toolsUsed: this.tools,
+        editedContent: edited,
+        changesApplied: ["Improved headings", "Enhanced transitions", "Increased clarity"],
+        summary: `📝 Editor refined the article: improved structure + readability.`
+      };
+    }
+  }
+
+  // AGENT 4: SEO Specialist - adds keywords, meta tags, optimization
+  class SEOAgent {
+    constructor(editorOutput, topic) {
+      this.editedContent = editorOutput.editedContent;
+      this.topic = topic;
+      this.tools = ["keyword_analyzer", "meta_generator", "competitor_analysis"];
+    }
+
+    async execute() {
+      // Generate keywords based on topic
+      const keywords = [`${this.topic} trends`, `${this.topic} benefits`, `future of ${this.topic}`, `${this.topic} technology`, `best practices ${this.topic}`];
+      const metaDescription = `Explore ${this.topic}: key insights, practical applications, and future outlook. A comprehensive guide by AI content crew.`;
+      const seoOptimized = this.editedContent + 
+        `\n\n<!-- SEO Metadata -->\n` +
+        `📌 **Keywords**: ${keywords.join(", ")}\n` +
+        `🔖 **Meta Description**: ${metaDescription}\n` +
+        `🏷️ **Tags**: #${this.topic.replace(/\s/g, '')} #AIcontent #Innovation`;
+      
+      return {
+        agent: "SEO Specialist",
+        toolsUsed: this.tools,
+        finalContent: seoOptimized,
+        keywords: keywords,
+        metaDescription: metaDescription,
+        summary: `📈 SEO specialist added keywords & meta tags. Content ready for publication.`
+      };
+    }
+  }
+
+  // ---------- Multi-Agent Orchestrator (CrewAI style with handoffs) ----------
+  class ContentCrew {
+    constructor(topic) {
+      this.topic = topic;
+      this.researchResult = null;
+      this.writerResult = null;
+      this.editorResult = null;
+      this.seoResult = null;
+    }
+
+    async runSequential() {
+      // Handoff 1: Researcher → Writer
+      const researcher = new ResearcherAgent(this.topic);
+      this.researchResult = await researcher.execute();
+      
+      // Handoff 2: Writer → Editor (pass research)
+      const writer = new WriterAgent(this.researchResult, this.topic);
+      this.writerResult = await writer.execute();
+      
+      // Handoff 3: Editor → SEO
+      const editor = new EditorAgent(this.writerResult, this.topic);
+      this.editorResult = await editor.execute();
+      
+      // Handoff 4: SEO finalizes
+      const seo = new SEOAgent(this.editorResult, this.topic);
+      this.seoResult = await seo.execute();
+      
+      return {
+        crew: "ContentCreationCrew",
+        agents: ["Researcher", "Writer", "Editor", "SEO Specialist"],
+        handoffs: [
+          "Researcher → Writer (research findings passed)",
+          "Writer → Editor (draft article passed)",
+          "Editor → SEO (edited content passed)"
+        ],
+        finalOutput: this.seoResult
+      };
+    }
+
+    getCrewTrace() {
+      let trace = [];
+      if (this.researchResult) trace.push(`🔍 ${this.researchResult.summary}`);
+      if (this.writerResult) trace.push(`✍️ ${this.writerResult.summary}`);
+      if (this.editorResult) trace.push(`📝 ${this.editorResult.summary}`);
+      if (this.seoResult) trace.push(`📈 ${this.seoResult.summary}`);
+      return trace;
+    }
+
+    formatFinalPresentation() {
+      const final = this.seoResult;
+      const contentPreview = final.finalContent.length > 800 ? final.finalContent.substring(0, 800) + "..." : final.finalContent;
+      return `
+        <div style="font-family: monospace; background: #fafef8; padding: 1rem; border-radius: 1rem;">
+          <h4>✨ Final Article (SEO Optimized)</h4>
+          <div style="white-space: pre-wrap; font-size: 0.85rem;">${contentPreview.replace(/\n/g, '<br>')}</div>
+          <hr style="margin: 1rem 0;">
+          <div><strong>🏷️ Keywords:</strong> ${final.keywords.join(", ")}</div>
+          <div><strong>🔖 Meta Description:</strong> ${final.metaDescription}</div>
+          <div><strong>🛠️ Tools Used by Crew:</strong> Researcher(${this.researchResult?.toolsUsed.join(", ")}) | Writer(${this.writerResult?.toolsUsed.join(", ")}) | Editor(${this.editorResult?.toolsUsed.join(", ")}) | SEO(${final.toolsUsed.join(", ")})</div>
+        </div>
+      `;
+    }
+  }
+
+  // UI Logic
+  const chatContainer = document.getElementById('crewChat');
+  const topicInput = document.getElementById('topicInput');
+  const runBtn = document.getElementById('runCrewBtn');
+
+  function appendMessage(content, isUser = false, agentName = null) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${isUser ? 'user-msg' : ''}`;
+    const bubble = document.createElement('div');
+    bubble.className = isUser ? 'user-bubble' : 'agent-bubble';
+    if (agentName && !isUser) {
+      bubble.innerHTML = `<strong>${agentName}</strong><br>${content}`;
+    } else {
+      bubble.innerHTML = content;
+    }
+    msgDiv.appendChild(bubble);
+    chatContainer.appendChild(msgDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  async function runMultiAgentCrew() {
+    const topic = topicInput.value.trim();
+    if (!topic) {
+      appendMessage("⚠️ Please enter a content topic (e.g., 'Quantum Computing', 'Renewable Energy')", false);
+      return;
+    }
+    appendMessage(`📢 User Request: Create content about "${topic}"`, true);
+    
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'message';
+    loadingMsg.innerHTML = `<div class="agent-bubble" style="background:#eef3fc;">⏳ Multi-agent crew working: Researcher gathering data → Writer drafting → Editor polishing → SEO optimizing... (handoffs in progress)</div>`;
+    chatContainer.appendChild(loadingMsg);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    
+    const crew = new ContentCrew(topic);
+    await delay(400);
+    const result = await crew.runSequential();
+    loadingMsg.remove();
+    
+    // Show each agent's handoff and output
+    appendMessage(`🔍 **Researcher Agent** completed.\n📚 Findings: ${crew.researchResult.findings.substring(0, 200)}...\n🔧 Tools: ${crew.researchResult.toolsUsed.join(", ")}`, false, "Researcher");
+    
+    await delay(300);
+    appendMessage(`✍️ **Writer Agent** drafted article based on research.\n📄 Word count: ${crew.writerResult.wordCount}\n🔧 Tools: ${crew.writerResult.toolsUsed.join(", ")}`, false, "Writer");
+    
+    await delay(300);
+    appendMessage(`📖 **Editor Agent** polished content.\n✅ Changes: ${crew.editorResult.changesApplied.join(", ")}`, false, "Editor");
+    
+    await delay(300);
+    const finalPresentation = crew.formatFinalPresentation();
+    appendMessage(`📈 **SEO Specialist** finished optimization.\n\n${finalPresentation}`, false, "SEO Specialist");
+    
+    // Add handoff summary
+    const handoffNote = document.createElement('div');
+    handoffNote.className = 'handoff-indicator';
+    handoffNote.innerHTML = `🔄 Handoffs: Researcher → Writer → Editor → SEO (task delegation complete) | Framework: CrewAI-style sequential pipeline.`;
+    chatContainer.appendChild(handoffNote);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+  
+  runBtn.addEventListener('click', runMultiAgentCrew);
+  topicInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') runMultiAgentCrew();
+  });
+</script>
+</body>
+</html>
