@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 3: Agentic AI - Memory & State Management | Personal Shopping Assistant</title>
+    <!-- Google Fonts & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Prism.js for code highlighting -->
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #f8fafc 0%, #eff3f8 100%);
+            color: #0f172a;
+            line-height: 1.5;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* header */
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            font-weight: 600;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+        }
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(120deg, #0f2b3d, #1e3a8a);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+        }
+        .subhead {
+            font-size: 1.2rem;
+            color: #334155;
+            max-width: 720px;
+            margin: 1rem auto 0;
+        }
+
+        /* grid & cards */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 2rem;
+            margin: 2.5rem 0;
+        }
+        .card {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 1.8rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.6);
+            transition: transform 0.2s ease, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 40px -14px rgba(0,0,0,0.12);
+        }
+        .card h2 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            border-left: 5px solid #3b82f6;
+            padding-left: 1rem;
+        }
+        .card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .icon {
+            color: #3b82f6;
+        }
+        .list-styled {
+            padding-left: 1.5rem;
+            margin: 1rem 0;
+        }
+        .list-styled li {
+            margin: 0.5rem 0;
+        }
+        .code-block {
+            background: #0f172a;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        pre {
+            margin: 0;
+            font-size: 0.85rem;
+        }
+        code {
+            font-family: 'Fira Code', monospace;
+        }
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        .workflow {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+            margin: 1.5rem 0;
+        }
+        .step {
+            background: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .arrow {
+            font-size: 1.4rem;
+            color: #94a3b8;
+        }
+        .demo-section {
+            background: linear-gradient(135deg, #ffffff, #f1f5f9);
+            border-radius: 2rem;
+            margin: 3rem 0;
+            padding: 2rem;
+            border: 1px solid #e2e8f0;
+        }
+        button {
+            background: #0f172a;
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.6rem 1.5rem;
+            border-radius: 3rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+        button:hover {
+            background: #1e293b;
+            transform: scale(0.98);
+        }
+        .pref-panel {
+            background: #fefce8;
+            border-radius: 1.2rem;
+            padding: 1.2rem;
+            margin-top: 1rem;
+        }
+        .memory-status {
+            background: #e6f7ec;
+            padding: 0.6rem 1rem;
+            border-radius: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: #475569;
+            font-size: 0.85rem;
+            border-top: 1px solid #cbd5e1;
+        }
+        @media (max-width: 760px) {
+            .grid-2col { grid-template-columns: 1fr; }
+            h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <div class="badge"><i class="fas fa-brain"></i> Agentic AI · Day 3</div>
+        <h1>Memory & State Management 🧠</h1>
+        <div class="subhead">Short-term vs Long-term · Buffers · Vector Stores · State Persistence<br>🎯 Use-case: <strong>Personal Shopping Assistant</strong> that remembers your style, size & budget</div>
+    </div>
+
+    <!-- what / why / how / where section -->
+    <div class="grid-2col">
+        <!-- What & Why -->
+        <div class="card">
+            <h2><i class="fas fa-question-circle icon"></i> What & Why</h2>
+            <p><strong>What is Memory in Agentic AI?</strong> The ability of an agent to retain information across interactions — both within a single conversation (short-term) and across sessions (long-term).</p>
+            <div class="note">
+                <i class="fas fa-lightbulb"></i> <strong>Why crucial?</strong> Without memory, an agent treats every query as first contact. For a shopping assistant, remembering “prefers cotton shirts, size L, budget $50” is the difference between a generic bot and a <strong>personalized concierge</strong>.
+            </div>
+            <h3><i class="fas fa-chart-line"></i> Business Impact</h3>
+            <ul class="list-styled">
+                <li>✅ Increases user engagement & retention</li>
+                <li>✅ Reduces repetitive questioning</li>
+                <li>✅ Enables context-aware recommendations</li>
+                <li>✅ Builds trust through continuity</li>
+            </ul>
+        </div>
+        <!-- How & Where -->
+        <div class="card">
+            <h2><i class="fas fa-cogs icon"></i> How & Where</h2>
+            <p><strong>How memory is implemented:</strong> Using conversation buffers, vector databases, and summary techniques. Where memory lives: in-memory (session) or persistent (database/vector store).</p>
+            <ul class="list-styled">
+                <li><strong>📍 Short-term memory</strong> – sliding window buffers, in-context tokens</li>
+                <li><strong>📍 Long-term memory</strong> – vector DB (Chroma/FAISS) storing embeddings of user preferences</li>
+                <li><strong>📍 Summary memory</strong> – compress old conversation into condensed notes</li>
+                <li><strong>📍 State persistence</strong> – saving agent state (user ID, preferences) to disk or cloud</li>
+            </ul>
+            <div class="note">
+                <i class="fas fa-database"></i> <strong>When to use Vector Stores:</strong> For open-ended user profiles, product affinity, and cross-session retrieval. FAISS/Chroma allow semantic search over past interactions.
+            </div>
+        </div>
+    </div>
+
+    <!-- Conversation buffers, vector stores, summary memory deep dive -->
+    <div class="grid-2col">
+        <div class="card">
+            <h3><i class="fas fa-comment-dots"></i> Conversation Buffer Memory</h3>
+            <p>Stores recent dialogue turns. <code>ConversationBufferWindowMemory</code> keeps last K messages to avoid token overflow.</p>
+            <div class="code-block">
+                <pre><code class="language-python">from langchain.memory import ConversationBufferWindowMemory
+
+memory = ConversationBufferWindowMemory(k=3, return_messages=True)
+memory.save_context({"input": "I like blue shoes"}, 
+                    {"output": "Got it, blue preference saved"})
+print(memory.load_memory_variables({}))</code></pre>
+            </div>
+            <p><strong>✔️ Best for:</strong> ongoing chat within a single session.</p>
+        </div>
+        <div class="card">
+            <h3><i class="fas fa-vector-square"></i> Vector Store Long-Term Memory</h3>
+            <p>Embed user preferences and retrieve similar memories using semantic search. Ideal for cross-session memory.</p>
+            <div class="code-block">
+                <pre><code class="language-python">from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
+import pickle
+
+# store preferences as vector docs
+prefs = ["user prefers size M", "likes minimalist design", "budget under $100"]
+vector_db = FAISS.from_texts(prefs, OpenAIEmbeddings())
+# later retrieval
+similar = vector_db.similarity_search("budget limit", k=1)
+print(similar[0].page_content)  # 'budget under $100'</code></pre>
+            </div>
+        </div>
+        <div class="card">
+            <h3><i class="fas fa-list-alt"></i> Summary Memory</h3>
+            <p>Periodically summarizes conversation history to maintain big-picture context while reducing token usage.</p>
+            <div class="code-block">
+                <pre><code class="language-python">from langchain.memory import ConversationSummaryMemory
+summary_memory = ConversationSummaryMemory(llm=llm)
+summary_memory.save_context({"input": "I need a red dress"}, 
+                            {"output": "Searching red dresses"})
+# produces summary: "User wants a red dress"</code></pre>
+            </div>
+        </div>
+        <div class="card">
+            <h3><i class="fas fa-database"></i> State Persistence</h3>
+            <p>Save memory objects (buffers, vector indices) to disk/Redis to survive restarts.</p>
+            <div class="code-block">
+                <pre><code class="language-python"># Save FAISS index
+vector_db.save_local("shopping_assistant_index")
+# Load again
+restored_db = FAISS.load_local("shopping_assistant_index", embeddings)</code></pre>
+            </div>
+            <p><strong>➕ Combine:</strong> user_id + persistent vector store = cross-session memory magic</p>
+        </div>
+    </div>
+
+    <!-- Use-case: Personal Shopping Assistant - full detailed example -->
+    <div class="demo-section">
+        <h2 style="display: flex; gap: 10px;"><i class="fas fa-robot" style="color:#8b5cf6;"></i> 🛍️ Use-Case: Personal Shopping Assistant</h2>
+        <p>An agent that remembers user preferences <strong>(size, color, budget, style)</strong> across sessions using <strong>FAISS vector database + persistent storage</strong>. The assistant can store and retrieve past likes/dislikes, and answer with personalized recommendations.</p>
+        
+        <div class="workflow">
+            <span class="step"><i class="fas fa-user"></i> User: "I love leather jackets"</span>
+            <span class="arrow"><i class="fas fa-arrow-right"></i></span>
+            <span class="step"><i class="fas fa-database"></i> Vector DB Store</span>
+            <span class="arrow"><i class="fas fa-arrow-right"></i></span>
+            <span class="step"><i class="fas fa-search"></i> Semantic Retrieval</span>
+            <span class="arrow"><i class="fas fa-arrow-right"></i></span>
+            <span class="step"><i class="fas fa-gem"></i> Personalized Reply</span>
+        </div>
+
+        <h3><i class="fas fa-code"></i> Complete Implementation Example (Python + FAISS + LangChain)</h3>
+        <div class="code-block">
+            <pre><code class="language-python">import os
+from langchain.memory import ConversationBufferMemory
+from langchain.embeddings import OpenAIEmbeddings  # or HuggingFace
+from langchain.vectorstores import FAISS
+from langchain.chains import ConversationalRetrievalChain
+from langchain.chat_models import ChatOpenAI
+import pickle
+
+class ShoppingAssistant:
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.embeddings = OpenAIEmbeddings()
+        self.llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.2)
+        # Try to load existing vector DB for this user
+        self.vector_db = self._load_vector_db()
+        self.conversation_memory = ConversationBufferMemory(
+            memory_key="chat_history", return_messages=True
+        )
+        
+    def _load_vector_db(self):
+        path = f"memory_db_{self.user_id}.faiss"
+        if os.path.exists(path):
+            return FAISS.load_local(path, self.embeddings)
+        else:
+            # Initialize empty with dummy text (will add later)
+            return FAISS.from_texts(["init"], self.embeddings)
+    
+    def _save_vector_db(self):
+        self.vector_db.save_local(f"memory_db_{self.user_id}.faiss")
+    
+    def remember_preference(self, preference_text):
+        """Store user preference in long-term memory (vector store)"""
+        self.vector_db.add_texts([preference_text])
+        self._save_vector_db()
+        return f"📝 Remembered: '{preference_text}'"
+    
+    def retrieve_preferences(self, query):
+        """Search related preferences from past sessions"""
+        docs = self.vector_db.similarity_search(query, k=3)
+        return [doc.page_content for doc in docs]
+    
+    def chat(self, user_input):
+        # Retrieve relevant long-term memories
+        long_term_memories = self.retrieve_preferences(user_input)
+        context = "\n".join(long_term_memories)
+        # Build a prompt that includes both memory sources
+        prompt = f"User shopping profile (from history): {context}\nUser: {user_input}\nAssistant:"
+        response = self.llm.predict(prompt)
+        # Optionally, extract new preferences from this interaction (simplified)
+        if "like" in user_input.lower() or "prefer" in user_input.lower():
+            self.remember_preference(user_input)
+        return response
+
+# Example usage across sessions
+assistant = ShoppingAssistant("alice123")
+print(assistant.chat("I need a summer dress, size S, under $60"))
+print(assistant.chat("Show me blue sneakers"))
+# Next day / new session – load same user_id, memory persists!
+assistant2 = ShoppingAssistant("alice123")
+print(assistant2.chat("What was my size preference?"))  # retrieves size S
+</code></pre>
+        </div>
+        <div class="note">
+            <i class="fas fa-check-circle"></i> <strong>Key takeaways:</strong> The agent uses FAISS to remember long-term preferences across different sessions. You can combine with <code>ConversationBufferMemory</code> for short-term dialogue flow.
+        </div>
+    </div>
+
+    <!-- Interactive mini demo simulation (static but shows concept) -->
+    <div class="demo-section" id="interactive-demo">
+        <h2><i class="fas fa-hand-peace"></i> Interactive Memory Simulation (Frontend concept)</h2>
+        <p>Below is a working simulation of a Personal Shopping Assistant memory store in your browser. It mimics <strong>short-term buffer</strong> + <strong>long-term vector store</strong>. Try adding preferences and then retrieving them.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 2rem; margin-top: 1.5rem;">
+            <div style="flex:1; min-width: 220px;">
+                <h3>✍️ Add Preference</h3>
+                <input type="text" id="prefInput" placeholder="e.g., I love leather bags, budget $200" style="width:100%; padding:0.6rem; border-radius: 2rem; border:1px solid #cbd5e1; margin-bottom:0.8rem;">
+                <button id="storePrefBtn"><i class="fas fa-save"></i> Store Memory</button>
+                <div class="pref-panel" id="storedList"><strong>Long-term vector memory:</strong> <span id="memoryList">none yet</span></div>
+            </div>
+            <div style="flex:2;">
+                <h3>💬 Ask Assistant (with memory)</h3>
+                <input type="text" id="queryInput" placeholder="Ask: What size did I prefer? or Find me a jacket" style="width:100%; padding:0.6rem; border-radius: 2rem; border:1px solid #cbd5e1;">
+                <button id="askBtn" style="margin-top: 0.5rem;"><i class="fas fa-comment"></i> Ask Assistant</button>
+                <div class="memory-status" id="responseArea" style="margin-top: 1rem;"><strong>Assistant:</strong> Waiting for your question...</div>
+                <div class="note" style="margin-top: 0.8rem; font-size:0.8rem;"><i class="fas fa-info-circle"></i> The assistant uses simulated embedding retrieval (keyword + semantic match) to recall previously stored preferences across "sessions".</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- best practices and architecture summary -->
+    <div class="grid-2col">
+        <div class="card">
+            <h3><i class="fas fa-chalkboard-teacher"></i> Where to use each type</h3>
+            <ul class="list-styled">
+                <li><strong>Buffer window</strong> → real-time customer support chat</li>
+                <li><strong>Vector store</strong> → long-term user profile, product recommendations, cross-session memory</li>
+                <li><strong>Summary memory</strong> → very long conversations (e.g., legal or medical advisory)</li>
+                <li><strong>Hybrid</strong> → shopping assistant: buffer for current cart + vector DB for past tastes</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3><i class="fas fa-project-diagram"></i> Agentic Memory Architecture</h3>
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 160'%3E%3Crect width='400' height='160' fill='%23f1f5f9' rx='20'/%3E%3Ctext x='20' y='30' font-size='12' fill='%23334155'%3EUser Input → Short-term Buffer (sliding window)%3C/text%3E%3Ctext x='20' y='55' font-size='12' fill='%23334155'%3E↓ Summarizer (optional) → Summary Memory%3C/text%3E%3Ctext x='20' y='80' font-size='12' fill='%23334155'%3E↓ Embedding → Vector DB (FAISS/Chroma) %3C/text%3E%3Ctext x='20' y='105' font-size='12' fill='%23334155'%3E↓ Retrieve relevant long-term memories%3C/text%3E%3Ctext x='20' y='130' font-size='12' fill='%23334155'%3E→ Agent response with personalization%3C/text%3E%3C/svg%3E" style="width:100%; max-width:380px; margin-top: 0.5rem;" alt="memory architecture diagram">
+        </div>
+    </div>
+
+    <footer>
+        <i class="fas fa-microchip"></i> Agentic AI - Day 3: Memory & State Management for Personal Shopping Assistant.<br>
+        Built with FAISS, Chroma, LangChain — persistence across sessions transforms static bots into true companions.
+    </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+<script>
+    // Interactive simulation: store preferences as long-term memory (array) and retrieve semantic-like matching
+    let longTermMemory = [];   // simulates vector DB entries
+    function renderMemoryList() {
+        const memorySpan = document.getElementById('memoryList');
+        if (longTermMemory.length === 0) {
+            memorySpan.innerText = 'none yet (add preferences)';
+        } else {
+            memorySpan.innerHTML = longTermMemory.map((mem, idx) => `<span style="background:#eef2ff; padding:2px 8px; border-radius:20px; margin:2px; display:inline-block;">${mem}</span>`).join('');
+        }
+    }
+    // store preference
+    document.getElementById('storePrefBtn').addEventListener('click', () => {
+        const inputEl = document.getElementById('prefInput');
+        const pref = inputEl.value.trim();
+        if (pref === "") {
+            alert("Please enter a preference (e.g., size M, budget $80, likes cotton)");
+            return;
+        }
+        longTermMemory.push(pref);
+        renderMemoryList();
+        inputEl.value = '';
+        // show feedback
+        const responseDiv = document.getElementById('responseArea');
+        responseDiv.innerHTML = `<strong>Assistant (memory update):</strong> ✅ Stored: "${pref}". I'll remember this across sessions!`;
+    });
+
+    // query assistant: simulate retrieval by checking if any stored pref matches user query semantically (contains keywords)
+    function retrieveRelevantPrefs(query) {
+        if (longTermMemory.length === 0) return [];
+        const queryLower = query.toLowerCase();
+        // compute simple relevance score based on word overlap and synonyms (simulated)
+        const scored = longTermMemory.map(mem => {
+            const memLower = mem.toLowerCase();
+            let score = 0;
+            // keyword matching: size, color, budget, style etc
+            const keywords = ['size', 'color', 'budget', 'price', 'like', 'prefer', 'jacket', 'shoes', 'dress', 'bag', 'shirt', 'leather', 'cotton'];
+            keywords.forEach(kw => {
+                if (queryLower.includes(kw) && memLower.includes(kw)) score += 2;
+            });
+            // word overlap
+            const queryWords = queryLower.split(/\s+/);
+            const memWords = memLower.split(/\s+/);
+            queryWords.forEach(qw => {
+                if (memWords.includes(qw) && qw.length > 2) score += 1;
+            });
+            return { mem, score };
+        });
+        const relevant = scored.filter(s => s.score > 0).sort((a,b) => b.score - a.score).slice(0,3);
+        return relevant.map(r => r.mem);
+    }
+
+    document.getElementById('askBtn').addEventListener('click', () => {
+        const query = document.getElementById('queryInput').value.trim();
+        if (query === "") {
+            document.getElementById('responseArea').innerHTML = "<strong>Assistant:</strong> Please ask something (e.g., what's my budget?)";
+            return;
+        }
+        const relevantMemories = retrieveRelevantPrefs(query);
+        let responseText = "";
+        if (relevantMemories.length === 0) {
+            responseText = "I don't have any stored preferences about that yet. Tell me what you like (size, style, budget) and I'll remember!";
+        } else {
+            responseText = `🧠 I remember from previous interactions: ${relevantMemories.join('; ')}. Based on that, `;
+            if (query.toLowerCase().includes("jacket") || query.toLowerCase().includes("coat")) {
+                responseText += "I recommend our leather jacket collection that fits your style.";
+            } else if (query.toLowerCase().includes("shoes")) {
+                responseText += "I'd suggest sneakers that match your previous color preferences.";
+            } else if (query.toLowerCase().includes("size")) {
+                const sizePref = relevantMemories.find(m => m.toLowerCase().includes("size"));
+                if(sizePref) responseText += `your preferred size is noted: ${sizePref}.`;
+                else responseText += "I haven't captured size yet, please share it!";
+            } else {
+                responseText += "I can personalize recommendations based on these memories. Would you like to see some products?";
+            }
+        }
+        // additionally show that short-term buffer would also keep context (but we simulate hybrid)
+        document.getElementById('responseArea').innerHTML = `<strong>🛍️ Assistant:</strong> ${responseText}<br><span style="font-size:0.75rem; opacity:0.7;">(long-term vector memory retrieved: ${relevantMemories.length} relevant items)</span>`;
+    });
+    renderMemoryList();
+    // preload some demo preference to illustrate cross-session persistence (simulate previous session)
+    window.addEventListener('load', () => {
+        if(longTermMemory.length === 0) {
+            // optional demo suggestion: add example to show concept
+            // but we keep empty for user to try. but to be friendly, add one example on first load if memory empty? 
+            // let's not force, but provide interactive experience.
+        }
+    });
+</script>
+</body>
+</html>
