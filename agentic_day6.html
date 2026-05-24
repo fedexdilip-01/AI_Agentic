@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic AI - Day 6: Evaluation & Observability | Customer Support Agent Testing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #f1f5f9 0%, #e8edf4 100%);
+      color: #0f2b3d;
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #1a4d6b, #4a8c7c, #3b8b7c);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #2c6079;
+      max-width: 800px;
+      margin: 0.8rem auto 0;
+    }
+
+    /* theory cards */
+    .theory-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.8rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.92);
+      border-radius: 1.8rem;
+      padding: 1.7rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255,255,255,0.8);
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      background: white;
+      box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      border-left: 5px solid #4a8c7c;
+      padding-left: 0.9rem;
+      color: #0e3b4f;
+    }
+
+    .badge {
+      background: #e0f0f5;
+      padding: 0.25rem 0.9rem;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #1c6e5e;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+
+    .metric-pill {
+      background: #eef2ff;
+      border-radius: 30px;
+      padding: 0.3rem 1rem;
+      font-size: 0.8rem;
+      display: inline-block;
+      margin: 0.2rem;
+    }
+
+    /* metrics dashboard */
+    .metrics-dashboard {
+      background: linear-gradient(135deg, #1a3a4a, #1a4d5e);
+      border-radius: 1.8rem;
+      padding: 1.5rem;
+      color: white;
+      margin-bottom: 2rem;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.2rem;
+      margin-top: 1rem;
+    }
+
+    .metric-card {
+      background: rgba(255,255,255,0.15);
+      border-radius: 1.2rem;
+      padding: 1rem;
+      text-align: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .metric-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+    }
+
+    .metric-label {
+      font-size: 0.75rem;
+      opacity: 0.8;
+      margin-top: 0.3rem;
+    }
+
+    /* test suite section */
+    .test-section {
+      background: white;
+      border-radius: 2rem;
+      padding: 2rem;
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+      margin-top: 1rem;
+    }
+
+    .test-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .test-header h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1a5f6e;
+    }
+
+    .run-btn {
+      background: #4a8c7c;
+      border: none;
+      padding: 0.7rem 1.8rem;
+      border-radius: 2rem;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .run-btn:hover {
+      background: #2c6e5e;
+      transform: scale(1.02);
+    }
+
+    .test-table {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      padding: 0.9rem 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    th {
+      background: #f1f5f9;
+      font-weight: 600;
+      color: #1e4a6e;
+    }
+
+    .status-success {
+      color: #10b981;
+      font-weight: 600;
+    }
+
+    .status-fail {
+      color: #ef4444;
+      font-weight: 600;
+    }
+
+    .trace-view {
+      background: #0f2027;
+      color: #a5f3c3;
+      border-radius: 1rem;
+      padding: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.7rem;
+      margin-top: 1.5rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .trace-line {
+      border-left: 2px solid #4a8c7c;
+      padding-left: 0.8rem;
+      margin: 0.5rem 0;
+    }
+
+    .collapsible {
+      cursor: pointer;
+      padding: 0.5rem;
+      background: #f8fafc;
+      border-radius: 0.8rem;
+      margin: 0.5rem 0;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 2.5rem;
+      font-size: 0.75rem;
+      color: #6b8ea0;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>📊 Day 6: Evaluation & Observability</h1>
+    <p>Metrics (Success Rate · Steps · Token Cost · Tool Accuracy) · Tracing (LangSmith/Phoenix/Weave) · Unit Testing Agent Prompts</p>
+  </div>
+
+  <!-- Theory Cards -->
+  <div class="theory-grid">
+    <div class="card">
+      <div class="badge">📈 Evaluation Metrics</div>
+      <h2>What & Why Measure?</h2>
+      <p><strong>Success Rate:</strong> % of queries resolved correctly. <strong>Steps taken:</strong> reasoning complexity. <strong>Token cost:</strong> operational expense. <strong>Tool accuracy:</strong> correct tool selection rate.</p>
+      <p>Without observability, agents are black boxes. Metrics enable benchmarking, regression detection, and cost optimization.</p>
+      <div class="metric-pill">✅ Success Rate</div>
+      <div class="metric-pill">⚙️ Steps per task</div>
+      <div class="metric-pill">💰 Token cost</div>
+      <div class="metric-pill">🔧 Tool accuracy</div>
+    </div>
+
+    <div class="card">
+      <div class="badge">🔍 Tracing & Observability</div>
+      <h2>LangSmith · Phoenix · Weave</h2>
+      <p><strong>LangSmith:</strong> debug, evaluate, monitor LLM apps. <strong>Phoenix (Arize):</strong> trace visibility, drift detection. <strong>Weave (W&B):</strong> experiment tracking for agents.</p>
+      <p><strong>How:</strong> Instrument agent calls → capture inputs/outputs → visualize traces → identify failures.</p>
+      <div class="code-snip">
+        // Trace example: step-level inspection
+        trace = { step: "ReAct", thought: "...", action: "calculator", observation: 42 }
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="badge">🧪 Unit Testing Agent Prompts</div>
+      <h2>Test-Driven Agent Development</h2>
+      <p>Create test suites with expected outputs. Validate prompt changes don't break functionality. Use synthetic test cases, edge cases, and adversarial inputs.</p>
+      <p><strong>Use-case:</strong> Customer Support Agent from Day 1 — test calculator, refund policies, escalation handling.</p>
+    </div>
+  </div>
+
+  <!-- Metrics Dashboard -->
+  <div class="metrics-dashboard" id="metricsDashboard">
+    <h3 style="margin-bottom: 0.5rem;">📊 Real-time Evaluation Metrics (Day 1 Customer Support Agent)</h3>
+    <div class="metrics-grid" id="metricsGrid">
+      <div class="metric-card">
+        <div class="metric-value" id="successRateVal">0%</div>
+        <div class="metric-label">Success Rate</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="avgStepsVal">0</div>
+        <div class="metric-label">Avg Steps/Task</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="totalCostVal">$0.000</div>
+        <div class="metric-label">Total Token Cost (est.)</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="toolAccVal">0%</div>
+        <div class="metric-label">Tool Accuracy</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Suite Section -->
+  <div class="test-section">
+    <div class="test-header">
+      <h2>🧪 Customer Support Agent Test Suite (10 queries)</h2>
+      <button class="run-btn" id="runTestsBtn">▶ Run All Tests & Trace</button>
+    </div>
+    <p style="margin-bottom: 1rem; font-size: 0.85rem;">Tests evaluate ReAct agent with calculator tool for customer support scenarios: refunds, order totals, discounts, shipping calculations, and edge cases.</p>
+    <div class="test-table">
+      <table id="testTable">
+        <thead>
+          <tr><th>#</th><th>Test Query</th><th>Expected Intent</th><th>Status</th><th>Steps Taken</th><th>Tool Used</th><th>Cost (est.)</th></tr>
+        </thead>
+        <tbody id="testTableBody">
+          <!-- populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+    <!-- Trace visualization panel -->
+    <div id="tracePanel" class="trace-view" style="display: none;">
+      <div style="font-weight: 700; margin-bottom: 0.8rem;">🔬 LangSmith-style Trace Logs (execution details)</div>
+      <div id="traceContent"></div>
+    </div>
+  </div>
+  <footer>
+    📐 Evaluation Framework | Success metrics, step tracing, cost estimation, tool accuracy | Observability for production agents
+  </footer>
+</div>
+
+<script>
+  // ----------------------------------------------
+  // ReAct Customer Support Agent (Day 1 style with calculator + support intents)
+  // Evaluated with metrics collection
+  // ----------------------------------------------
+
+  // Calculator tool (safe evaluation)
+  class CalculatorTool {
+    static evaluate(expression) {
+      try {
+        let sanitized = expression.replace(/\s/g, '');
+        sanitized = sanitized.replace(/sqrt\(/g, 'Math.sqrt(');
+        sanitized = sanitized.replace(/\^/g, '**');
+        if (!/^[0-9+\-*/%(). Math.sqrt**\^]+$/.test(sanitized.replace(/Math\.sqrt/g, ''))) {
+          return { success: false, error: "Invalid characters" };
+        }
+        const result = Function('"use strict"; return (' + sanitized + ')')();
+        if (typeof result !== 'number' || isNaN(result) || !isFinite(result)) {
+          return { success: false, error: "Invalid result" };
+        }
+        return { success: true, value: parseFloat(result.toFixed(6)) };
+      } catch (err) {
+        return { success: false, error: err.message };
+      }
+    }
+  }
+
+  // ReAct Agent simulation with reasoning steps and tool selection
+  function runCustomerSupportAgent(query) {
+    const steps = [];
+    let toolUsed = null;
+    let toolInput = null;
+    let toolResult = null;
+    let finalAnswer = "";
+    
+    // Reasoning step 1: understand intent
+    steps.push({ type: "thought", content: `Analyzing user query: "${query}"` });
+    
+    // Detect if calculation needed
+    const mathKeywords = [/calculate/i, /what is/i, /compute/i, /total/i, /price/i, /discount/i, /shipping/i, /\d+[\+\-\*\/]/];
+    const isMath = mathKeywords.some(p => p.test(query)) || /\d+/.test(query) && /[\+\-\*\/]/.test(query);
+    
+    if (isMath) {
+      // Extract expression
+      let exprMatch = query.match(/(\d+(?:\.\d+)?[\s]*[\+\-\*\/][\s]*\d+(?:[\s]*[\+\-\*\/][\s]*\d+)*|\([^)]+\)[\+\-\*\/]\d+)/);
+      if (!exprMatch) {
+        const fallback = query.replace(/(calculate|what is|total|compute)/gi, '').match(/[\d\.\(\)\+\-\*\/]+/);
+        if (fallback) exprMatch = [fallback[0]];
+      }
+      const expression = exprMatch ? exprMatch[0] : null;
+      
+      if (expression) {
+        steps.push({ type: "action", content: `Action: calculator_tool\nInput: "${expression}"` });
+        toolUsed = "calculator";
+        toolInput = expression;
+        const result = CalculatorTool.evaluate(expression);
+        if (result.success) {
+          toolResult = result.value;
+          steps.push({ type: "observation", content: `Calculator returned: ${result.value}` });
+          finalAnswer = `✅ The result of ${expression} is ${result.value}.`;
+        } else {
+          toolResult = null;
+          steps.push({ type: "observation", content: `Error: ${result.error}` });
+          finalAnswer = `❌ Calculation failed: ${result.error}. Please check the expression.`;
+        }
+      } else {
+        finalAnswer = "❓ I couldn't extract a valid math expression. Please provide a clear calculation (e.g., 'What is 15 * 3?').";
+      }
+    } else if (query.toLowerCase().includes("refund") || query.toLowerCase().includes("return")) {
+      steps.push({ type: "thought", content: "Refund request detected. This requires escalation to human agent." });
+      finalAnswer = "🔄 I've noted your refund request. A customer support specialist will assist you within 24 hours. For immediate help, please call 1-800-123-4567.";
+      toolUsed = "escalation";
+    } else if (query.toLowerCase().includes("order status") || query.toLowerCase().includes("track")) {
+      finalAnswer = "📦 To check your order status, please provide your order number. I can help with that once you share the ID.";
+      toolUsed = "order_lookup";
+    } else if (query.toLowerCase().includes("shipping")) {
+      // estimate shipping using simple logic
+      const zipMatch = query.match(/\b\d{5}\b/);
+      if (zipMatch) {
+        finalAnswer = `🚚 Shipping to ${zipMatch[0]} typically takes 3-5 business days. Standard shipping costs $5.99.`;
+      } else {
+        finalAnswer = "🚚 Standard shipping takes 3-5 business days. Express shipping (1-2 days) costs $12.99. Please provide zip code for exact estimate.";
+      }
+      toolUsed = "shipping_calculator";
+    } else {
+      finalAnswer = "👋 I'm your customer support assistant. I can help with calculations, order status, shipping estimates, or escalate refund requests. How can I assist you today?";
+    }
+    
+    steps.push({ type: "final", content: finalAnswer });
+    const totalSteps = steps.length;
+    const tokenCostEstimate = (query.length + finalAnswer.length) / 1000 * 0.002 + (steps.length * 0.0005); // rough estimate $0.002 per 1k tokens
+    return { steps, finalAnswer, toolUsed, toolInput, toolResult, totalSteps, tokenCost: Math.max(0.0005, tokenCostEstimate) };
+  }
+
+  // ----- Test Suite (10 queries for Customer Support Agent) -----
+  const testQueries = [
+    { query: "What is 25 * 4 + 10?", expectedIntent: "calculation", requiresTool: true },
+    { query: "Calculate 15% discount on $200", expectedIntent: "calculation", requiresTool: true },
+    { query: "I need a refund for my order #12345", expectedIntent: "refund_escalation", requiresTool: false },
+    { query: "Total price: 3 items at $19.99 each plus $5 shipping", expectedIntent: "calculation", requiresTool: true },
+    { query: "What's 144 divided by 12?", expectedIntent: "calculation", requiresTool: true },
+    { query: "My order status? Order ID: ORD-789", expectedIntent: "order_status", requiresTool: false },
+    { query: "Compute shipping cost to zip code 90210", expectedIntent: "shipping", requiresTool: false },
+    { query: "sqrt(256) plus 50", expectedIntent: "calculation", requiresTool: true },
+    { query: "I want to return a defective product", expectedIntent: "refund_escalation", requiresTool: false },
+    { query: "(120 + 80) * 0.07 tax calculation", expectedIntent: "calculation", requiresTool: true }
+  ];
+
+  // Determine success based on expected intent match and tool usage correctness
+  function evaluateSuccess(agentResult, testCase) {
+    const hasTool = agentResult.toolUsed !== null;
+    const correctToolForCalc = (testCase.expectedIntent === "calculation") ? (agentResult.toolUsed === "calculator" && agentResult.toolResult !== null) : true;
+    const escalationForRefund = (testCase.expectedIntent === "refund_escalation") ? (agentResult.toolUsed === "escalation" || agentResult.finalAnswer.includes("specialist")) : true;
+    const orderStatusOk = (testCase.expectedIntent === "order_status") ? agentResult.finalAnswer.includes("order number") : true;
+    const shippingOk = (testCase.expectedIntent === "shipping") ? (agentResult.finalAnswer.includes("shipping") || agentResult.toolUsed === "shipping_calculator") : true;
+    
+    let success = false;
+    if (testCase.expectedIntent === "calculation") {
+      success = correctToolForCalc && agentResult.toolResult !== null && !agentResult.finalAnswer.includes("failed");
+    } else if (testCase.expectedIntent === "refund_escalation") {
+      success = escalationForRefund;
+    } else if (testCase.expectedIntent === "order_status") {
+      success = orderStatusOk;
+    } else if (testCase.expectedIntent === "shipping") {
+      success = shippingOk;
+    } else {
+      success = agentResult.finalAnswer.length > 10;
+    }
+    if (testCase.requiresTool && !hasTool && testCase.expectedIntent === "calculation") success = false;
+    return success;
+  }
+
+  // Run all tests and collect metrics
+  let testResults = [];
+  let cumulativeSteps = 0;
+  let cumulativeCost = 0;
+  let toolAccuracyTotal = 0;
+  let toolAccuracyCount = 0;
+  let successCount = 0;
+
+  function runAllTests() {
+    testResults = [];
+    cumulativeSteps = 0;
+    cumulativeCost = 0;
+    toolAccuracyTotal = 0;
+    toolAccuracyCount = 0;
+    successCount = 0;
+    const traces = [];
+
+    for (let i = 0; i < testQueries.length; i++) {
+      const test = testQueries[i];
+      const agentResult = runCustomerSupportAgent(test.query);
+      const success = evaluateSuccess(agentResult, test);
+      if (success) successCount++;
+      cumulativeSteps += agentResult.totalSteps;
+      cumulativeCost += agentResult.tokenCost;
+      
+      // tool accuracy: if test requires tool, check if agent used correct tool (calculator for calc)
+      let toolCorrect = false;
+      if (test.expectedIntent === "calculation") {
+        toolCorrect = (agentResult.toolUsed === "calculator" && agentResult.toolResult !== null);
+        if (test.requiresTool) {
+          toolAccuracyCount++;
+          if (toolCorrect) toolAccuracyTotal++;
+        }
+      } else {
+        // for non-calc, tool usage not strictly required, but we count proper handling
+        toolAccuracyCount++;
+        toolAccuracyTotal += (agentResult.toolUsed !== null || agentResult.finalAnswer.length > 5) ? 1 : 0;
+      }
+      
+      testResults.push({
+        id: i+1,
+        query: test.query,
+        expected: test.expectedIntent,
+        success: success,
+        steps: agentResult.totalSteps,
+        toolUsed: agentResult.toolUsed || "none",
+        cost: agentResult.tokenCost,
+        trace: agentResult.steps,
+        finalAnswer: agentResult.finalAnswer
+      });
+      
+      // build trace string for display
+      traces.push(`\n[Test ${i+1}] Query: "${test.query}"\n${agentResult.steps.map(s => `  • ${s.type.toUpperCase()}: ${s.content}`).join("\n")}\n✅ Final: ${agentResult.finalAnswer}\n`);
+    }
+    
+    const successRate = (successCount / testQueries.length) * 100;
+    const avgSteps = cumulativeSteps / testQueries.length;
+    const toolAccuracy = toolAccuracyCount > 0 ? (toolAccuracyTotal / toolAccuracyCount) * 100 : 0;
+    
+    // Update metrics dashboard
+    document.getElementById('successRateVal').innerText = `${Math.round(successRate)}%`;
+    document.getElementById('avgStepsVal').innerText = avgSteps.toFixed(1);
+    document.getElementById('totalCostVal').innerText = `$${cumulativeCost.toFixed(4)}`;
+    document.getElementById('toolAccVal').innerText = `${Math.round(toolAccuracy)}%`;
+    
+    // Render table
+    const tbody = document.getElementById('testTableBody');
+    tbody.innerHTML = "";
+    testResults.forEach(tr => {
+      const row = tbody.insertRow();
+      row.insertCell(0).innerText = tr.id;
+      row.insertCell(1).innerText = tr.query.length > 50 ? tr.query.substring(0,50)+"..." : tr.query;
+      row.insertCell(2).innerText = tr.expected;
+      row.insertCell(3).innerHTML = tr.success ? '<span class="status-success">✓ PASS</span>' : '<span class="status-fail">✗ FAIL</span>';
+      row.insertCell(4).innerText = tr.steps;
+      row.insertCell(5).innerText = tr.toolUsed;
+      row.insertCell(6).innerText = `$${tr.cost.toFixed(4)}`;
+    });
+    
+    // Show trace panel with LangSmith-style logs
+    const tracePanel = document.getElementById('tracePanel');
+    const traceContent = document.getElementById('traceContent');
+    tracePanel.style.display = 'block';
+    let traceHtml = `<div class="trace-line"><strong>📋 Agent Evaluation Summary</strong><br>Success Rate: ${Math.round(successRate)}% (${successCount}/${testQueries.length})<br>Avg Steps: ${avgSteps.toFixed(1)}<br>Total Cost: $${cumulativeCost.toFixed(4)}<br>Tool Accuracy: ${Math.round(toolAccuracy)}%</div>`;
+    traceHtml += `<hr style="border-color:#2c6e5e;">`;
+    testResults.forEach(tr => {
+      traceHtml += `<div class="trace-line"><strong>🧪 Test ${tr.id}:</strong> "${tr.query}" → ${tr.success ? '✅ PASS' : '❌ FAIL'}<br>`;
+      tr.trace.forEach((step, idx) => {
+        traceHtml += `<span style="font-size:0.7rem;">➡ ${step.type}: ${step.content.substring(0, 80)}</span><br>`;
+      });
+      traceHtml += `<em>💬 Final: ${tr.finalAnswer.substring(0, 100)}</em><br></div><br>`;
+    });
+    traceContent.innerHTML = traceHtml;
+  }
+
+  // Add function to run tests on button click
+  document.getElementById('runTestsBtn').addEventListener('click', () => {
+    runAllTests();
+  });
+
+  // Optional: run initial tests on page load to populate metrics
+  window.addEventListener('DOMContentLoaded', () => {
+    runAllTests();
+  });
+</script>
+</body>
+</html>
