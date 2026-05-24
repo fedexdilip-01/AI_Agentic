@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foundations of Agentic AI | ReAct Agent Demo</title>
+  <!-- Google Fonts & simple styling reset -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #f6f9fc 0%, #eef2f5 100%);
+      color: #1a2c3e;
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* HEADER SECTION */
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #1E3C5C, #2A5F8A);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #2c4e6e;
+      max-width: 720px;
+      margin: 1rem auto 0;
+    }
+
+    /* Cards grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.8rem;
+      margin-bottom: 2.8rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(2px);
+      border-radius: 2rem;
+      padding: 1.6rem;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0,0,0,0.02);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: 1px solid rgba(255,255,255,0.7);
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 32px -12px rgba(0, 0, 0, 0.12);
+      background: white;
+    }
+
+    .card h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      border-left: 5px solid #2A7F6E;
+      padding-left: 0.9rem;
+      color: #0F2B3D;
+    }
+
+    .card h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 1rem 0 0.5rem;
+      color: #2c5a74;
+    }
+
+    .badge {
+      background: #e9f0f5;
+      padding: 0.2rem 0.7rem;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #1e5a7a;
+      display: inline-block;
+      margin-bottom: 0.8rem;
+    }
+
+    .comparison-table {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+
+    .comp-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed #cddfe7;
+      padding: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    .comp-term {
+      font-weight: 700;
+      color: #1d4d6b;
+    }
+
+    .code-block {
+      background: #0f2027;
+      color: #e2f0f7;
+      padding: 0.75rem;
+      border-radius: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      margin: 0.8rem 0;
+    }
+
+    /* DEMO SECTION (ReAct Agent with calculator) */
+    .demo-section {
+      background: white;
+      border-radius: 2rem;
+      padding: 2rem;
+      margin-top: 1rem;
+      box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2edf2;
+    }
+
+    .demo-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .demo-header h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1a4c6e;
+    }
+
+    .react-icon {
+      background: #eaf6f3;
+      padding: 0.3rem 1rem;
+      border-radius: 60px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .chat-area {
+      background: #f8fafc;
+      border-radius: 1.5rem;
+      padding: 1.2rem;
+      margin-bottom: 1.5rem;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #dce9f0;
+    }
+
+    .message {
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 0.8rem;
+    }
+
+    .user-msg {
+      justify-content: flex-end;
+    }
+
+    .user-bubble {
+      background: #1e5a7a;
+      color: white;
+      padding: 0.7rem 1.2rem;
+      border-radius: 1.8rem;
+      max-width: 85%;
+      font-size: 0.9rem;
+    }
+
+    .agent-bubble {
+      background: #e9f0f5;
+      color: #1a2c3e;
+      padding: 0.7rem 1.2rem;
+      border-radius: 1.8rem;
+      max-width: 85%;
+      font-size: 0.9rem;
+      border: 1px solid #cbdbe0;
+    }
+
+    .tool-call {
+      font-family: monospace;
+      font-size: 0.8rem;
+      background: #edf2f7;
+      padding: 0.2rem 0.5rem;
+      border-radius: 12px;
+      display: inline-block;
+      margin-top: 0.2rem;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 0.5rem;
+    }
+
+    #userQuery {
+      flex: 1;
+      padding: 0.9rem 1.2rem;
+      border-radius: 2rem;
+      border: 1px solid #cbdde8;
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    #userQuery:focus {
+      border-color: #2A7F6E;
+      box-shadow: 0 0 0 3px rgba(42,127,110,0.2);
+    }
+
+    button {
+      background: #2A7F6E;
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0 1.8rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #1e5f52;
+    }
+
+    .info-note {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: #4d6f86;
+      border-top: 1px solid #dee9ef;
+      padding-top: 1rem;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: 0.8rem;
+      color: #607d8b;
+    }
+
+    @media (max-width: 680px) {
+      .hero h1 { font-size: 2rem; }
+      .demo-header h2 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>🤖 Foundations of Agentic AI</h1>
+    <p>Autonomous reasoning, memory, action & multi-agent paradigms — with a live <strong>ReAct Agent</strong> + calculator tool</p>
+  </div>
+
+  <!-- Theory Cards: What/Why/How/Where for core topics -->
+  <div class="grid">
+    <!-- What is Agentic AI -->
+    <div class="card">
+      <div class="badge">🧠 Core concept</div>
+      <h2>What is Agentic AI?</h2>
+      <p><strong>Agentic AI</strong> refers to systems that act autonomously to achieve goals, perceive environments, reason, plan, and execute actions — beyond just generating text. Unlike <strong>Generative AI</strong> (pure content creation), Agentic AI makes decisions, uses tools, and interacts with external systems.</p>
+      <h3>⚡ Autonomous vs Generative</h3>
+      <p><strong>Generative AI:</strong> LLMs that output text/images given a prompt (passive). <br>
+      <strong>Agentic AI:</strong> LLM-powered agents that reason, choose actions, call tools (APIs, calculators, search), and pursue objectives iteratively.</p>
+      <div class="code-block">🔹 Example: GenAI writes a recipe → Agentic AI orders groceries, calculates servings, and adjusts cooking time.</div>
+    </div>
+
+    <!-- Key components -->
+    <div class="card">
+      <div class="badge">⚙️ Architecture</div>
+      <h2>Key Components</h2>
+      <p><strong>Perception</strong> – interprets user input / environment state.<br>
+      <strong>Reasoning</strong> – chain-of-thought, planning (ReAct pattern: Reason + Act).<br>
+      <strong>Memory</strong> – short-term (conversation context) & long-term (vector DBs).<br>
+      <strong>Action</strong> – executing tool calls, API requests, or environment changes.</p>
+      <h3>🧩 ReAct Paradigm</h3>
+      <p>Reasoning traces allow the agent to plan, observe, and adapt. <br><em>Thought → Action → Observation → (repeat)</em> → Final Answer.</p>
+    </div>
+
+    <!-- RAG vs Agents vs Multi-Agent -->
+    <div class="card">
+      <div class="badge">🔄 Comparison</div>
+      <h2>RAG vs Agents vs Multi-Agent</h2>
+      <div class="comparison-table">
+        <div class="comp-row"><span class="comp-term">RAG (Retrieval-Augmented Gen)</span><span>Retrieve docs + generate answer. No tool use / autonomous loop.</span></div>
+        <div class="comp-row"><span class="comp-term">Single Agent</span><span>Reasoning + tool usage to accomplish tasks (e.g., ReAct Agent).</span></div>
+        <div class="comp-row"><span class="comp-term">Multi-Agent Systems</span><span>Multiple specialized agents collaborate/debate (e.g., supervisor, researcher, coder).</span></div>
+      </div>
+      <p style="margin-top: 10px;"><strong>🧭 Use-case focus:</strong> <strong>Customer Support Automation</strong> – agents handle ticket routing, FAQ lookup, refund calculations, and escalate to human. Our calculator agent can help with pricing, discounts, or shipping math.</p>
+    </div>
+  </div>
+
+  <!-- environment & langChain style setup description + ReAct example -->
+  <div class="demo-section">
+    <div class="demo-header">
+      <h2>🛠️ Day 1 Task: ReAct Agent + Calculator Tool</h2>
+      <span class="react-icon">⚡ LangChain style · ReAct pattern</span>
+    </div>
+    <p><strong>📦 Environment setup (simulated):</strong> LangChain, OpenAI API, HuggingFace — but here we implement the <strong>ReAct logic + calculator tool</strong> in pure JS to demonstrate the exact <strong>Reasoning + Acting</strong> cycle without API keys, showcasing agentic behavior. The agent decides when to call the calculator tool based on user math queries.</p>
+    <div class="code-block">
+      // ReAct agent pseudocode (LangChain style):<br>
+      // 1. Prompt includes tools (Calculator)<br>
+      // 2. Agent generates Thought + Action + Action Input<br>
+      // 3. Execute tool → Observation<br>
+      // 4. Continue until Final Answer<br>
+      // ✅ Implemented below: dynamic agent that interprets natural language math tasks.
+    </div>
+    
+    <!-- LIVE ReAct Agent DEMO (with calculator tool) -->
+    <div style="margin-top: 1.5rem;">
+      <h3>🤖 Live ReAct Agent — Ask any calculation question</h3>
+      <p>The agent uses <strong>Reasoning → Action (Calculator) → Observation → Final Answer</strong>. It simulates tool-calling for basic arithmetic.</p>
+    </div>
+
+    <div class="chat-area" id="chatLog">
+      <div class="message">
+        <div class="agent-bubble">
+          💡 <strong>Agent ready</strong> — I can use my calculator tool. Try: <em>"What is 124 * 5.75?"</em> or <em>"(45 + 67) / 4"</em> or <em>"sqrt of 144"</em>.
+        </div>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <input type="text" id="userQuery" placeholder="Ask something like: Calculate 24 * (13 + 42) ..." autocomplete="off">
+      <button id="sendBtn">▶ Ask Agent</button>
+    </div>
+    <div class="info-note">
+      📐 <strong>ReAct in action:</strong> The agent will first "Reason" what to do, then "Act" by calling the calculator tool (simulated), then "Observe" the result and generate the final answer. Multi-step reasoning is shown in the chat. Supports + - * /, sqrt, power (^), and parentheses.
+    </div>
+  </div>
+  
+  <footer>
+    🧪 Agentic AI demo — ReAct pattern with tool use | comparison: RAG retrieves, Agent acts, Multi-agent collaborates | Customer Support automation use-case ready
+  </footer>
+</div>
+
+<script>
+  // ---------- ReAct Agent Implementation (Calculator Tool, Reasoning) ----------
+  // ReAct Cycle: we simulate an agent that decides to call a calculator tool for any math-related query.
+  // For simplicity, agent will use reasoning steps, then tool invocation (evaluate expression), produce final.
+  
+  // Safe Calculator Tool (supports basic math, sqrt, power, parentheses)
+  class CalculatorTool {
+    static evaluate(expression) {
+      try {
+        // Clean and prepare expression: replace ^ with ** for power, support sqrt()
+        let sanitized = expression.replace(/\s/g, '');
+        // replace 'sqrt(' with 'Math.sqrt('
+        sanitized = sanitized.replace(/sqrt\(/g, 'Math.sqrt(');
+        // replace power ^ with ** 
+        sanitized = sanitized.replace(/\^/g, '**');
+        // additional safety: only allow numbers, operators, parentheses, Math functions
+        if (!/^[0-9+\-*/%(). Math.sqrt**\^]+$/.test(sanitized.replace(/Math\.sqrt/g, ''))) {
+          return { success: false, error: "Invalid characters in expression" };
+        }
+        // Use Function constructor to safely evaluate mathematical expression
+        const result = Function('"use strict"; return (' + sanitized + ')')();
+        if (typeof result !== 'number' || isNaN(result) || !isFinite(result)) {
+          return { success: false, error: "Invalid calculation result" };
+        }
+        return { success: true, value: parseFloat(result.toFixed(6)) };
+      } catch (err) {
+        return { success: false, error: err.message };
+      }
+    }
+  }
+
+  // Helper to detect if the user query is math / calculation related (triggers tool use)
+  function isMathQuery(text) {
+    const mathKeywords = [/calculate/i, /what is/i, /compute/i, /solve/i, /math/i, /[0-9]+[\+\-\*\/\^\(\)]/, /plus/i, /minus/i, /times/i, /divided by/i, /sqrt/i, /power/i];
+    return mathKeywords.some(pattern => pattern.test(text)) || /[\d\s\+\-\*\/\^\(\)]+/.test(text) && text.match(/\d/) && text.match(/[\+\-\*\/\^]/);
+  }
+
+  // Extract math expression from natural language
+  function extractExpression(query) {
+    // Try to capture mathematical pattern: numbers, operators, parentheses, sqrt, ^
+    let exprMatch = query.match(/(\d+(?:\.\d+)?[\s]*[\+\-\*\/\^][\s]*\d+(?:[\s]*[\+\-\*\/\^\(\)][\s]*\d+)*|\([^)]+\)[\+\-\*\/]\d+|sqrt\s*\(?\d+\)?|\d+\^?\d+)/i);
+    if (!exprMatch) {
+      // fallback: try to extract any expression with numbers and operators
+      const fallback = query.replace(/(what is|calculate|compute|the result of)/gi, '').match(/[\d\.\(\)\+\-\*\/\^]+/);
+      if (fallback) return fallback[0];
+      return null;
+    }
+    return exprMatch[0];
+  }
+
+  // ReAct Agent: produces chain of thought, action, observation, final answer
+  function runReActAgent(userMessage) {
+    const steps = [];
+    // 1. Reasoning: Agent analysis
+    steps.push({ type: 'thought', content: `🤔 Thought: The user asks: "${userMessage}". I need to determine if a calculation is required.` });
+    
+    if (isMathQuery(userMessage)) {
+      const rawExpr = extractExpression(userMessage);
+      if (!rawExpr) {
+        steps.push({ type: 'thought', content: `⚠️ I recognize a math request but cannot isolate a clear expression. Asking for clarification.` });
+        steps.push({ type: 'final', content: `❓ I see you're asking for a calculation. Could you provide the math expression clearly? (e.g., 15 * 3 + 8)` });
+        return steps;
+      }
+      
+      // Action: use calculator tool
+      steps.push({ type: 'action', content: `🔧 Action: calculator_tool\n🔢 Action Input: "${rawExpr}"` });
+      const calcResult = CalculatorTool.evaluate(rawExpr);
+      
+      if (!calcResult.success) {
+        steps.push({ type: 'observation', content: `📊 Observation: Calculator error — ${calcResult.error}` });
+        steps.push({ type: 'final', content: `❌ Sorry, I couldn't compute "${rawExpr}". Error: ${calcResult.error}. Please check the expression.` });
+        return steps;
+      }
+      
+      steps.push({ type: 'observation', content: `📊 Observation: The calculator returned ${calcResult.value}` });
+      steps.push({ type: 'thought', content: `💭 Reasoning: I have the result. Now I will produce a helpful final answer.` });
+      steps.push({ type: 'final', content: `✅ Final Answer: The result of \`${rawExpr}\` is **${calcResult.value}**. (calculated using calculator tool)` });
+    } 
+    else {
+      // Non-math query: agent explains capabilities (customer support style fallback)
+      steps.push({ type: 'thought', content: `🤔 This doesn't appear to be a calculation query. As a calculator-specialized ReAct agent, I can perform math tasks.` });
+      steps.push({ type: 'final', content: `ℹ️ I'm a ReAct agent equipped with a calculator tool. Please ask me to calculate something, like "What is 450 / 12?" or "sqrt(225) + 10". For customer support, I could help compute totals, discounts, or shipping costs.` });
+    }
+    return steps;
+  }
+
+  // DOM elements
+  const chatLog = document.getElementById('chatLog');
+  const userInput = document.getElementById('userQuery');
+  const sendBtn = document.getElementById('sendBtn');
+
+  function appendMessage(role, content, isAgentSteps = false, stepsArray = null) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${role === 'user' ? 'user-msg' : ''}`;
+    
+    if (role === 'user') {
+      msgDiv.innerHTML = `<div class="user-bubble">🧑 ${content}</div>`;
+    } else {
+      if (stepsArray && stepsArray.length) {
+        // display the reasoning chain in an elegant way
+        let stepsHtml = `<div class="agent-bubble" style="max-width:95%;"><strong>🤖 ReAct Agent Cycle:</strong><br>`;
+        stepsArray.forEach(step => {
+          let icon = '';
+          if (step.type === 'thought') icon = '💭 ';
+          else if (step.type === 'action') icon = '⚡ ';
+          else if (step.type === 'observation') icon = '👁️ ';
+          else if (step.type === 'final') icon = '🏁 ';
+          stepsHtml += `<div style="margin-top: 8px; font-size:0.85rem;">${icon}${step.content}</div>`;
+        });
+        stepsHtml += `</div>`;
+        msgDiv.innerHTML = stepsHtml;
+      } else {
+        msgDiv.innerHTML = `<div class="agent-bubble">${content}</div>`;
+      }
+    }
+    chatLog.appendChild(msgDiv);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  function processUserQuery() {
+    const query = userInput.value.trim();
+    if (!query) return;
+    
+    // Append user message
+    appendMessage('user', query);
+    userInput.value = '';
+    
+    // Simulate agent processing (ReAct cycle)
+    const reasoningSteps = runReActAgent(query);
+    // extract final answer text for separate logging but we display all steps in agent bubble
+    const finalStep = reasoningSteps.find(s => s.type === 'final');
+    const finalContent = finalStep ? finalStep.content : "I've processed your request using ReAct pattern.";
+    
+    // Append the full reasoning trace as agent message (rich format)
+    appendMessage('agent', finalContent, true, reasoningSteps);
+    
+    // Optional: slight delay for realism
+  }
+
+  sendBtn.addEventListener('click', processUserQuery);
+  userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') processUserQuery();
+  });
+
+  // Initial demo: show example greeting, no additional action.
+  // highlight the ReAct agent already ready.
+  console.log('ReAct Agent ready with calculator tool');
+</script>
+</body>
+</html>
