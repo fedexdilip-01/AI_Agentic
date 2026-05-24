@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic AI - Day 7: End-to-End Customer Support Agent | LangGraph + RAG + Human Handoff</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #f0f4fa 0%, #e6edf5 100%);
+            color: #0f2b3d;
+            line-height: 1.5;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1a4d6b, #2c7f6e, #3b8b7c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #2c6079;
+            max-width: 800px;
+            margin: 0.8rem auto 0;
+        }
+
+        /* Tech stack badges */
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+            margin: 1.5rem 0;
+        }
+
+        .tech-badge {
+            background: white;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        /* theory & architecture cards */
+        .theory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.92);
+            border-radius: 1.8rem;
+            padding: 1.7rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            background: white;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            border-left: 5px solid #2c7f6e;
+            padding-left: 0.9rem;
+            color: #0e3b4f;
+        }
+
+        .badge {
+            background: #e0f0f5;
+            padding: 0.25rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #1c6e5e;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .graph-node {
+            background: #f1f9fc;
+            border-radius: 1rem;
+            padding: 0.6rem;
+            margin: 0.5rem 0;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+
+        /* demo section - live agent */
+        .demo-section {
+            background: white;
+            border-radius: 2rem;
+            padding: 2rem;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+            margin-top: 1rem;
+        }
+
+        .demo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-header h2 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #1a5f6e;
+        }
+
+        .status-badge {
+            background: #e6f7f0;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .chat-container {
+            background: #fafdff;
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            max-height: 450px;
+            overflow-y: auto;
+            border: 1px solid #dee9f0;
+            margin-bottom: 1.5rem;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+        }
+
+        .user-msg {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .user-bubble {
+            background: #1b6b6b;
+            color: white;
+            padding: 0.7rem 1.2rem;
+            border-radius: 1.8rem;
+            max-width: 85%;
+            font-size: 0.9rem;
+        }
+
+        .agent-bubble {
+            background: #eff5fa;
+            color: #1f4457;
+            padding: 0.9rem 1.2rem;
+            border-radius: 1.5rem;
+            border: 1px solid #cde0ea;
+            margin-top: 0.3rem;
+        }
+
+        .node-trace {
+            background: #fef7e0;
+            border-left: 3px solid #f5a623;
+            padding: 0.3rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            margin: 0.3rem 0;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 0.8rem;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 0.9rem 1.2rem;
+            border-radius: 2rem;
+            border: 1px solid #cbdde8;
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        #userInput:focus {
+            border-color: #2c7f6e;
+            box-shadow: 0 0 0 3px rgba(44,127,110,0.2);
+        }
+
+        button {
+            background: #2c7f6e;
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0 2rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #1c5f52;
+        }
+
+        .faq-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .suggestion-chip {
+            background: #eef2f7;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .suggestion-chip:hover {
+            background: #cde0ea;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2.5rem;
+            font-size: 0.75rem;
+            color: #6b8ea0;
+        }
+
+        hr {
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <h1>🏢 Day 7: Production AI Customer Support Agent</h1>
+        <p>End-to-End Agent: Intent Classification · RAG (FAISS) · Order API · Refund Tickets · Human Escalation (LangGraph State Machine)</p>
+    </div>
+
+    <!-- Tech Stack -->
+    <div class="tech-stack">
+        <span class="tech-badge">🐍 LangGraph (State Machine)</span>
+        <span class="tech-badge">🔍 FAISS (Document Search)</span>
+        <span class="tech-badge">⚡ FastAPI (Deployment)</span>
+        <span class="tech-badge">📊 Streamlit (UI)</span>
+        <span class="tech-badge">🧠 Conditional Edges</span>
+        <span class="tech-badge">👤 Human Handoff</span>
+    </div>
+
+    <!-- Theory cards: what/why/how/where -->
+    <div class="theory-grid">
+        <div class="card">
+            <div class="badge">📐 LangGraph Architecture</div>
+            <h2>State Machine for Conversations</h2>
+            <p><strong>Graph Nodes:</strong> classify_intent → (rag_query | api_call | human_handoff) → final response. Conditional edges route based on confidence thresholds.</p>
+            <div class="graph-node">🔹 classify_intent: identifies order, refund, faq, or escalation needs</div>
+            <div class="graph-node">🔹 rag_query: retrieves from FAISS (policy docs, FAQs)</div>
+            <div class="graph-node">🔹 api_call: order status / create refund ticket</div>
+            <div class="graph-node">🔹 human_handoff: confidence < 0.7 → transfer to live agent</div>
+            <p><strong>Why?</strong> Graph-based flow ensures reliability, debuggability, and deterministic handoffs.</p>
+        </div>
+
+        <div class="card">
+            <div class="badge">⚙️ RAG + FAISS + API</div>
+            <h2>Knowledge & Transactions</h2>
+            <p><strong>FAISS index:</strong> stores embeddings of FAQ documents (returns, shipping, policies). <strong>Order API:</strong> mocks database lookup for order status. <strong>Refund tickets:</strong> generates ticket IDs for returns.</p>
+            <p><strong>How it works:</strong> User query → embed → FAISS similarity search → generate answer from top chunks. Confidence scoring drives escalation.</p>
+        </div>
+
+        <div class="card">
+            <div class="badge">🧑‍💼 Human Handoff & Deployment</div>
+            <h2>Production Readiness</h2>
+            <p><strong>Handoff trigger:</strong> if intent confidence &lt; 0.7 OR user explicitly requests human → agent creates a support ticket and notifies human queue.</p>
+            <p><strong>Deployment:</strong> FastAPI backend, Streamlit frontend. This demo simulates the full graph with tracing, FAISS retrieval, and handoff logic.</p>
+        </div>
+    </div>
+
+    <!-- LIVE CUSTOMER SUPPORT AGENT DEMO (LangGraph style) -->
+    <div class="demo-section">
+        <div class="demo-header">
+            <h2>🎧 AI Customer Support Agent (LangGraph Simulation)</h2>
+            <span class="status-badge">🟢 Active | Order Status · Refunds · RAG FAQ · Escalation</span>
+        </div>
+        <p style="margin-bottom: 0.8rem;">This agent follows a LangGraph state machine: <strong>classify_intent → conditional edge → (rag / api / handoff) → response</strong>. Confidence score determines escalation.</p>
+        <div class="chat-container" id="chatContainer">
+            <div class="message">
+                <div class="agent-bubble">
+                    🤖 <strong>Support Agent ready!</strong> I can check order status, process refund requests, answer FAQs, or escalate to a human. Try: <br>
+                    • "Where's my order #ORD-123?"<br>
+                    • "I want to return a defective item"<br>
+                    • "What's your return policy?"<br>
+                    • "Talk to a human" (escalation)
+                </div>
+            </div>
+        </div>
+        
+        <!-- Graph state visualization -->
+        <div id="graphTrace" style="background: #f8fafc; border-radius: 1rem; padding: 0.6rem; margin-bottom: 1rem; font-size: 0.7rem; font-family: monospace; border: 1px solid #e2edf2;">
+            <strong>🔍 LangGraph Execution Trace:</strong> <span id="traceText">Waiting for input...</span>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Ask about order, refund, policy, or request human..." autocomplete="off">
+            <button id="sendBtn">Send ➤</button>
+        </div>
+        <div class="faq-suggestions">
+            <div class="suggestion-chip" data-msg="Order status for ORD-456">📦 Order status ORD-456</div>
+            <div class="suggestion-chip" data-msg="I want to return a product">🔄 Request return</div>
+            <div class="suggestion-chip" data-msg="What is your refund policy?">📜 Refund policy</div>
+            <div class="suggestion-chip" data-msg="Talk to a human agent">👤 Escalate to human</div>
+            <div class="suggestion-chip" data-msg="Shipping timeline">🚚 Shipping FAQ</div>
+        </div>
+        <div style="font-size: 0.7rem; margin-top: 12px; color: #467a6b;">
+            🧠 State machine: Classify Intent → Conditional Edge → Node (RAG/API/Ticket/Handoff) → Final answer. Confidence threshold 0.7 triggers human escalation.
+        </div>
+    </div>
+    <footer>
+        LangGraph pipeline | FAISS RAG | Order/Refund API | Human handoff | Conditional routing | Production-ready simulation
+    </footer>
+</div>
+
+<script>
+    // ----------------------------------------------
+    // LangGraph-inspired Customer Support Agent
+    // Nodes: classify_intent, rag_query, order_api, refund_ticket, human_handoff
+    // Conditional edges based on confidence scores
+    // ----------------------------------------------
+    
+    // ---------- MOCK DATABASES & KNOWLEDGE BASE (FAISS simulation) ----------
+    // Order database
+    const ordersDB = {
+        "ORD-123": { status: "Shipped", estimatedDelivery: "2025-06-03", items: ["Laptop", "Mouse"] },
+        "ORD-456": { status: "Processing", estimatedDelivery: "2025-06-07", items: ["Headphones"] },
+        "ORD-789": { status: "Delivered", deliveredDate: "2025-05-28", items: ["Keyboard"] }
+    };
+    
+    // FAISS document index (mock embeddings + content)
+    const faissDocs = [
+        { id: "doc1", content: "Return policy: Items can be returned within 30 days of delivery. Must be unused and in original packaging. Refunds processed within 5-7 business days.", keywords: ["return", "refund", "policy"] },
+        { id: "doc2", content: "Shipping: Standard shipping takes 3-5 business days. Express shipping 1-2 days costs $12.99. Free shipping on orders over $50.", keywords: ["shipping", "delivery", "free shipping"] },
+        { id: "doc3", content: "Warranty: All electronics have 1-year manufacturer warranty. For warranty claims, contact support with proof of purchase.", keywords: ["warranty", "defective", "claim"] },
+        { id: "doc4", content: "Order cancellation: You can cancel an order within 1 hour of placement. After that, please request a return once received.", keywords: ["cancel", "cancellation"] }
+    ];
+    
+    // Simple embedding similarity (keyword overlap simulation)
+    function faissSearch(query) {
+        const lowerQuery = query.toLowerCase();
+        const scores = faissDocs.map(doc => {
+            let score = 0;
+            doc.keywords.forEach(kw => { if (lowerQuery.includes(kw)) score += 0.35; });
+            if (doc.content.toLowerCase().split(" ").some(word => lowerQuery.includes(word) && word.length > 3)) score += 0.2;
+            return { doc, score: Math.min(score, 1.0) };
+        });
+        scores.sort((a,b) => b.score - a.score);
+        const top = scores[0] && scores[0].score > 0.2 ? scores[0].doc : null;
+        return top ? top.content : "I couldn't find a specific FAQ. Please visit our help center or ask to speak with a human.";
+    }
+    
+    // Mock order API
+    function getOrderStatus(orderId) {
+        const order = ordersDB[orderId.toUpperCase()];
+        if (order) {
+            return `✅ Order ${orderId}: ${order.status}. Expected delivery: ${order.estimatedDelivery || order.deliveredDate || "N/A"}. Items: ${order.items.join(", ")}.`;
+        }
+        return `❌ Order ${orderId} not found. Please check the order number or contact support.`;
+    }
+    
+    // Refund ticket creation (mock)
+    function createRefundTicket(orderId, reason) {
+        const ticketId = "TKT-" + Math.floor(Math.random() * 10000);
+        return `🎫 Refund request ticket created: ${ticketId}. Our team will process your return for order ${orderId || "unknown"} within 48 hours. Reason: ${reason}.`;
+    }
+    
+    // ---------- LangGraph Node Functions + Confidence ----------
+    // Node 1: classify_intent -> returns intent, confidence, extracted entities
+    function classifyIntent(query) {
+        const lower = query.toLowerCase();
+        let intent = "unknown";
+        let confidence = 0.5;
+        let entities = {};
+        
+        if (lower.includes("order status") || lower.includes("where is my order") || lower.includes("track order") || lower.match(/ord-\d+/i)) {
+            intent = "order_status";
+            confidence = 0.92;
+            const match = query.match(/(ORD-\d+)/i);
+            if (match) entities.orderId = match[1];
+            else {
+                const possible = query.match(/\b(\d{3,})\b/);
+                if (possible) entities.orderId = "ORD-" + possible[1];
+                else entities.orderId = null;
+            }
+        }
+        else if (lower.includes("return") || lower.includes("refund") || lower.includes("defective") || lower.includes("return item")) {
+            intent = "refund_request";
+            confidence = 0.88;
+            const orderMatch = query.match(/(ORD-\d+)/i);
+            entities.orderId = orderMatch ? orderMatch[1] : null;
+            entities.reason = lower.includes("defective") ? "defective product" : "customer return";
+        }
+        else if (lower.includes("policy") || lower.includes("shipping") || lower.includes("warranty") || lower.includes("faq") || lower.includes("cancel")) {
+            intent = "faq_rag";
+            confidence = 0.85;
+        }
+        else if (lower.includes("human") || lower.includes("talk to agent") || lower.includes("speak to representative") || lower.includes("escalate")) {
+            intent = "human_handoff";
+            confidence = 0.98;
+        }
+        else {
+            intent = "faq_rag"; // fallback to rag
+            confidence = 0.55;
+        }
+        return { intent, confidence, entities };
+    }
+    
+    // Nodes
+    function executeOrderStatusNode(entities) {
+        const orderId = entities.orderId || "unknown";
+        const result = getOrderStatus(orderId);
+        return { response: result, node: "order_api" };
+    }
+    
+    function executeRefundNode(entities) {
+        const orderId = entities.orderId || null;
+        const reason = entities.reason || "return request";
+        const ticketResult = createRefundTicket(orderId, reason);
+        return { response: ticketResult, node: "refund_ticket" };
+    }
+    
+    function executeRAGNode(query) {
+        const faqAnswer = faissSearch(query);
+        return { response: `📚 ${faqAnswer}`, node: "rag_query (FAISS)" };
+    }
+    
+    function executeHumanHandoffNode(query, intent) {
+        const ticketId = "ESC-" + Math.floor(Math.random() * 9000);
+        return { response: `👤 Your request has been escalated. A human agent will contact you within 15 minutes. Escalation ticket: ${ticketId}. (Intent: ${intent})`, node: "human_handoff" };
+    }
+    
+    // LangGraph state machine simulation: conditional edge based on confidence & intent
+    async function runLangGraphAgent(userMessage) {
+        const traceSteps = [];
+        // Step 1: classify
+        const { intent, confidence, entities } = classifyIntent(userMessage);
+        traceSteps.push(`[classify_intent] intent=${intent}, confidence=${confidence.toFixed(2)}`);
+        
+        let response = "";
+        let executedNode = "";
+        
+        // Conditional edge: if confidence < 0.7 -> human handoff (escalation)
+        if (confidence < 0.7 && intent !== "human_handoff") {
+            traceSteps.push(`⚠️ confidence < 0.7 → routing to human_handoff (escalation)`);
+            const handoffRes = executeHumanHandoffNode(userMessage, intent);
+            response = handoffRes.response;
+            executedNode = handoffRes.node;
+            traceSteps.push(`[${executedNode}] Escalated due to low confidence`);
+        } 
+        else {
+            // route based on intent
+            switch(intent) {
+                case "order_status":
+                    const orderRes = executeOrderStatusNode(entities);
+                    response = orderRes.response;
+                    executedNode = orderRes.node;
+                    traceSteps.push(`[${executedNode}] queried order status`);
+                    break;
+                case "refund_request":
+                    const refundRes = executeRefundNode(entities);
+                    response = refundRes.response;
+                    executedNode = refundRes.node;
+                    traceSteps.push(`[${executedNode}] created refund ticket`);
+                    break;
+                case "faq_rag":
+                    const ragRes = executeRAGNode(userMessage);
+                    response = ragRes.response;
+                    executedNode = ragRes.node;
+                    traceSteps.push(`[${executedNode}] retrieved from FAISS`);
+                    break;
+                case "human_handoff":
+                    const handoff = executeHumanHandoffNode(userMessage, intent);
+                    response = handoff.response;
+                    executedNode = handoff.node;
+                    traceSteps.push(`[${executedNode}] user requested human`);
+                    break;
+                default:
+                    const defaultRes = executeRAGNode(userMessage);
+                    response = defaultRes.response;
+                    executedNode = "fallback_rag";
+                    traceSteps.push(`[fallback] routed to RAG`);
+            }
+        }
+        traceSteps.push(`[final_response] generated answer`);
+        return { response, trace: traceSteps, intent, confidence, node: executedNode };
+    }
+    
+    // ---------- UI Rendering ----------
+    const chatContainer = document.getElementById('chatContainer');
+    const userInputField = document.getElementById('userInput');
+    const sendButton = document.getElementById('sendBtn');
+    const traceSpan = document.getElementById('traceText');
+    
+    function appendMessage(role, content, isAgent = true) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${role === 'user' ? 'user-msg' : ''}`;
+        const bubble = document.createElement('div');
+        bubble.className = role === 'user' ? 'user-bubble' : 'agent-bubble';
+        bubble.innerHTML = content.replace(/\n/g, '<br>');
+        msgDiv.appendChild(bubble);
+        chatContainer.appendChild(msgDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    
+    async function handleUserQuery() {
+        const query = userInputField.value.trim();
+        if (!query) return;
+        appendMessage('user', query, false);
+        userInputField.value = '';
+        
+        // Show typing indicator (simulate)
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message';
+        typingDiv.innerHTML = `<div class="agent-bubble" style="background:#e9f3ef;">⏳ Agent is processing through LangGraph nodes...</div>`;
+        chatContainer.appendChild(typingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        
+        // Execute LangGraph agent
+        const result = await runLangGraphAgent(query);
+        typingDiv.remove();
+        
+        // Build detailed response with node info
+        const fullResponse = `🧠 [${result.node} | intent: ${result.intent} | confidence: ${(result.confidence * 100).toFixed(0)}%]<br><br>${result.response}`;
+        appendMessage('agent', fullResponse, true);
+        
+        // Update trace panel with graph steps
+        traceSpan.innerHTML = result.trace.map(t => `→ ${t}`).join(' · ');
+        
+        // If human handoff, add special note
+        if (result.node === "human_handoff" || (result.confidence < 0.7 && result.intent !== "human_handoff")) {
+            const noteDiv = document.createElement('div');
+            noteDiv.className = 'node-trace';
+            noteDiv.innerHTML = "🔄 Handoff triggered: A human agent will follow up shortly.";
+            chatContainer.appendChild(noteDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    }
+    
+    sendButton.addEventListener('click', handleUserQuery);
+    userInputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleUserQuery();
+    });
+    
+    // Suggestions handling
+    document.querySelectorAll('.suggestion-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            userInputField.value = chip.getAttribute('data-msg');
+            handleUserQuery();
+        });
+    });
+    
+    // Initial trace update
+    traceSpan.innerHTML = "Ready. Nodes: classify_intent → conditional edge → (order_api | rag_query | refund_ticket | human_handoff)";
+</script>
+</body>
+</html>
