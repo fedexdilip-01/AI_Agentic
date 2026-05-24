@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic AI - Day 4: Planning & Multi-Step Reasoning | Research Paper Summarizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #f1f5f9 0%, #e6edf4 100%);
+      color: #0f2b3d;
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* header */
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #1a4d6b, #2c7f6e, #3b8b7c);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #2c6079;
+      max-width: 800px;
+      margin: 0.8rem auto 0;
+    }
+
+    /* theory cards */
+    .theory-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.8rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.92);
+      border-radius: 1.8rem;
+      padding: 1.7rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255,255,255,0.8);
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      background: white;
+      box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      border-left: 5px solid #2c7f6e;
+      padding-left: 0.9rem;
+      color: #0e3b4f;
+    }
+
+    .badge {
+      background: #e0f0f5;
+      padding: 0.25rem 0.9rem;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #1c6e5e;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+
+    .code-snip {
+      background: #0f2027;
+      color: #c9f0f0;
+      padding: 0.8rem;
+      border-radius: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+    }
+
+    /* demo section (planner + research agent) */
+    .demo-section {
+      background: white;
+      border-radius: 2rem;
+      padding: 2rem;
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+      margin-top: 1rem;
+      border: 1px solid #dce9f2;
+    }
+
+    .demo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .demo-header h2 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: #1a5f6e;
+    }
+
+    .plan-badge {
+      background: #eafaf7;
+      padding: 0.3rem 1.2rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+
+    .chat-panel {
+      background: #fafdff;
+      border-radius: 1.5rem;
+      padding: 1.2rem;
+      max-height: 450px;
+      overflow-y: auto;
+      border: 1px solid #dee9f0;
+      margin-bottom: 1.5rem;
+    }
+
+    .message {
+      margin-bottom: 1rem;
+    }
+
+    .user-msg {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .user-bubble {
+      background: #1b6b6b;
+      color: white;
+      padding: 0.7rem 1.2rem;
+      border-radius: 1.8rem;
+      max-width: 85%;
+      font-size: 0.9rem;
+    }
+
+    .agent-bubble {
+      background: #eff5fa;
+      color: #1f4457;
+      padding: 0.9rem 1.2rem;
+      border-radius: 1.5rem;
+      border: 1px solid #cde0ea;
+      margin-top: 0.5rem;
+    }
+
+    .plan-step {
+      background: #eef3fc;
+      border-left: 4px solid #2c7f6e;
+      padding: 0.6rem 1rem;
+      border-radius: 12px;
+      margin: 0.6rem 0;
+      font-size: 0.85rem;
+    }
+
+    .tool-call {
+      font-family: monospace;
+      background: #f0f6fa;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      display: inline-block;
+    }
+
+    .paper-preview {
+      background: #f9fef9;
+      border-radius: 1rem;
+      padding: 1rem;
+      margin: 0.8rem 0;
+      border: 1px solid #cbe5dc;
+    }
+
+    .key-finding {
+      background: #fffae6;
+      padding: 0.5rem;
+      border-radius: 10px;
+      margin: 6px 0;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 0.8rem;
+    }
+
+    #paperQuery {
+      flex: 1;
+      padding: 0.9rem 1.2rem;
+      border-radius: 2rem;
+      border: 1px solid #cbdde8;
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    #paperQuery:focus {
+      border-color: #2c7f6e;
+      box-shadow: 0 0 0 3px rgba(44,127,110,0.2);
+    }
+
+    button {
+      background: #2c7f6e;
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0 2rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #1c5f52;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 2.5rem;
+      font-size: 0.75rem;
+      color: #6b8ea0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>🧠 Day 4: Planning & Multi-Step Reasoning</h1>
+    <p>Chain-of-Thought · Tree-of-Thoughts · Plan-and-Execute · Error Recovery & Replanning — applied to Research Paper Summarizer</p>
+  </div>
+
+  <!-- Theory Cards: what/why/how/where -->
+  <div class="theory-grid">
+    <div class="card">
+      <div class="badge">📐 Reasoning Paradigms</div>
+      <h2>CoT · ToT · Plan-and-Execute</h2>
+      <p><strong>Chain-of-Thought (CoT)</strong>: step-by-step reasoning before answering. <strong>Tree-of-Thoughts (ToT)</strong>: explores multiple reasoning paths, backtracks. <strong>Plan-and-Execute</strong>: decompose high-level goal into subtasks → execute each step → aggregate results.</p>
+      <div class="code-snip">
+        // Plan-and-Execute example<br>
+        1. Fetch paper from arXiv<br>
+        2. Summarize each section<br>
+        3. Extract key findings<br>
+        4. Compare with past papers (vector similarity)
+      </div>
+      <p><strong>Why?</strong> Complex tasks (research analysis) need decomposition, error handling, and dynamic replanning if steps fail.</p>
+    </div>
+
+    <div class="card">
+      <div class="badge">⚙️ Error Recovery & Replanning</div>
+      <h2>Robust Agentic Workflows</h2>
+      <p>Planners handle failures: if API fails → retry/fallback; if extraction ambiguous → re-query. <strong>Replanning</strong> adjusts subsequent steps based on intermediate results. The agent observes outcomes and adapts.</p>
+      <p><strong>Where?</strong> Research summarizers, automated code generation, scientific workflows, travel planning, etc. Multi-step reasoning is critical for real-world agents.</p>
+    </div>
+
+    <div class="card">
+      <div class="badge">📚 Use-case: Research Assistant</div>
+      <h2>Paper Summarizer & Analyzer</h2>
+      <p><strong>Task:</strong> Build a planner agent that given a paper ID/title (arXiv) → fetches paper metadata → simulates section summaries → extracts key findings → compares with vector DB of previous papers (semantic search).</p>
+      <p>✅ Implements Plan-and-Execute with error recovery (e.g., fallback if paper not found, mock embeddings for comparison). Demonstrates multi-step reasoning with transparent planning steps.</p>
+    </div>
+  </div>
+
+  <!-- LIVE DEMO: Research paper agent with Plan-and-Execute -->
+  <div class="demo-section">
+    <div class="demo-header">
+      <h2>📄 Research Paper Summarizer Agent (Plan & Execute)</h2>
+      <span class="plan-badge">🧩 Plan-and-Execute + Replanning</span>
+    </div>
+    <p><strong>How it works:</strong> Agent follows a 4‑step plan: 1️⃣ Fetch paper (arXiv API simulation) → 2️⃣ Summarize sections → 3️⃣ Extract key findings → 4️⃣ Compare with previous papers (vector similarity). Includes error recovery and dynamic replanning.</p>
+    <div class="chat-panel" id="chatPanel">
+      <div class="message">
+        <div class="agent-bubble">
+          ✨ <strong>Research Agent ready</strong> — I use Plan-and-Execute reasoning. Enter an arXiv paper ID (e.g., "2106.09685" for GLIDE or "1706.03762" for Attention is All You Need) or any paper title. I'll fetch, summarize, extract findings, and compare with past research.
+        </div>
+      </div>
+    </div>
+    <div class="input-area">
+      <input type="text" id="paperQuery" placeholder="e.g., 2106.09685, 1706.03762, or 'Attention is all you need'" autocomplete="off">
+      <button id="runPlanBtn">▶ Run Planner Agent</button>
+    </div>
+    <div style="font-size: 0.7rem; margin-top: 12px; color: #467a6b;">
+      🧠 Planner agent simulates arXiv fetch, section-based summarization, findings extraction, and vector comparison (mock embeddings for demonstration). Replanning triggers if paper fetch fails.
+    </div>
+  </div>
+  <footer>
+    🔁 Multi-step reasoning | Plan-and-Execute pipeline | Error recovery & fallback | Research paper analyzer with CoT & vector comparison
+  </footer>
+</div>
+
+<script>
+  // -------------------------- SIMULATED RESEARCH PAPER DATABASE + ARXIV MOCK --------------------------
+  // Mock arXiv papers (metadata + content sections)
+  const paperDatabase = {
+    "2106.09685": {
+      id: "2106.09685",
+      title: "GLIDE: Towards Photorealistic Image Generation and Editing with Text-Guided Diffusion Models",
+      authors: "Nichol, Dhariwal, Ramesh, et al.",
+      abstract: "We present GLIDE, a diffusion model for text-guided image generation and editing. It achieves high realism and semantic alignment.",
+      sections: {
+        introduction: "Diffusion models have shown remarkable results. GLIDE uses classifier-free guidance.",
+        methodology: "We use a 3.5B parameter diffusion model with CLIP guidance and fine-tuning.",
+        experiments: "GLIDE outperforms DALL-E in human evaluations. Photorealism improved by 24%.",
+        conclusion: "Text-guided diffusion enables flexible editing. Future work includes interactive editing."
+      },
+      year: 2021
+    },
+    "1706.03762": {
+      id: "1706.03762",
+      title: "Attention Is All You Need",
+      authors: "Vaswani, Shazeer, Parmar, et al.",
+      abstract: "Transformer architecture based solely on attention mechanisms, achieving SOTA in machine translation.",
+      sections: {
+        introduction: "RNNs and CNNs have limitations. Attention mechanisms provide parallelism and long-range dependencies.",
+        methodology: "Multi-head attention, positional encoding, feed-forward layers.",
+        experiments: "Transformer achieves BLEU score of 28.4 on WMT 2014 Eng-German.",
+        conclusion: "Attention-only models are highly effective and scalable."
+      },
+      year: 2017
+    },
+    "2005.14165": {
+      id: "2005.14165",
+      title: "Language Models are Few-Shot Learners (GPT-3)",
+      authors: "Brown, Mann, Ryder, et al.",
+      abstract: "GPT-3 demonstrates few-shot learning across many NLP tasks with 175B parameters.",
+      sections: {
+        introduction: "Scaling language models improves task-agnostic performance.",
+        methodology: "We train 175B parameter autoregressive model on diverse web text.",
+        experiments: "GPT-3 achieves strong performance on translation, QA, and reasoning tasks.",
+        conclusion: "Large scale yields emergent abilities. Risks include bias and misuse."
+      },
+      year: 2020
+    }
+  };
+
+  // Mock vector database of previous paper embeddings (for comparison)
+  const previousPapersEmbeddings = [
+    { title: "BERT: Pre-training of Deep Bidirectional Transformers", keyFindings: "Bidirectional pretraining, state-of-the-art on GLUE", embeddingVec: [0.91, 0.45, 0.78] },
+    { title: "DALL-E: Zero-Shot Text-to-Image Generation", keyFindings: "Transformer for image generation, discrete VAE", embeddingVec: [0.32, 0.89, 0.44] },
+    { title: "ResNet: Deep Residual Learning", keyFindings: "Residual connections enable very deep networks", embeddingVec: [0.67, 0.23, 0.92] },
+    { title: "CLIP: Learning Transferable Visual Models", keyFindings: "Contrastive language-image pretraining, zero-shot classification", embeddingVec: [0.88, 0.76, 0.51] }
+  ];
+
+  // Helper to simulate embedding for a paper (just based on content hash)
+  function getPaperEmbedding(paper) {
+    let str = (paper.title + paper.abstract).substring(0, 100);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    const vec = [ (hash % 100) / 100, ((hash >> 8) % 100) / 100, ((hash >> 16) % 100) / 100 ];
+    return vec;
+  }
+
+  // Cosine similarity
+  function cosineSimilarity(vecA, vecB) {
+    let dot = 0, magA = 0, magB = 0;
+    for (let i = 0; i < vecA.length; i++) {
+      dot += vecA[i] * vecB[i];
+      magA += vecA[i] * vecA[i];
+      magB += vecB[i] * vecB[i];
+    }
+    if (magA === 0 || magB === 0) return 0;
+    return dot / (Math.sqrt(magA) * Math.sqrt(magB));
+  }
+
+  // Step 1: Fetch paper (simulate arXiv API call with error recovery)
+  async function fetchPaper(paperIdOrTitle) {
+    // try exact ID first
+    let paper = paperDatabase[paperIdOrTitle];
+    if (!paper) {
+      // search by title substring (case-insensitive)
+      const lowerQuery = paperIdOrTitle.toLowerCase();
+      const found = Object.values(paperDatabase).find(p => p.title.toLowerCase().includes(lowerQuery));
+      if (found) paper = found;
+    }
+    if (!paper) {
+      throw new Error(`Paper not found: "${paperIdOrTitle}". Available IDs: 2106.09685, 1706.03762, 2005.14165 or titles containing GLIDE, Attention, GPT-3.`);
+    }
+    return { ...paper, success: true };
+  }
+
+  // Step 2: Summarize each section (LLM simulation) - returns structured summary per section
+  function summarizeSections(paper) {
+    const summaries = {};
+    for (const [section, content] of Object.entries(paper.sections)) {
+      summaries[section] = `📌 ${section.charAt(0).toUpperCase() + section.slice(1)}: ${content.substring(0, 120)}${content.length > 120 ? '...' : ''}`;
+    }
+    return summaries;
+  }
+
+  // Step 3: Extract key findings (using heuristic / simulated extraction)
+  function extractKeyFindings(paper, summaries) {
+    const findings = [];
+    // extract from abstract and sections
+    if (paper.abstract.includes("outperforms")) findings.push("Outperforms prior models in human evaluations.");
+    if (paper.abstract.includes("attention")) findings.push("Attention mechanism provides performance gains and parallelism.");
+    if (paper.sections.experiments && paper.sections.experiments.includes("BLEU")) findings.push("Achieves SOTA BLEU score in translation tasks.");
+    if (paper.sections.conclusion && paper.sections.conclusion.includes("scalable")) findings.push("Architecture is highly scalable and efficient.");
+    if (paper.title.includes("GLIDE")) findings.push("Text-guided diffusion enables photorealistic image editing.");
+    if (paper.title.includes("GPT-3")) findings.push("Few-shot learning emerges at scale (175B parameters).");
+    if (paper.title.includes("Attention")) findings.push("Transformer eliminates recurrence, enables parallel training.");
+    if (findings.length === 0) findings.push("Novel architecture demonstrating significant improvements.");
+    return findings.slice(0, 4);
+  }
+
+  // Step 4: Compare with previous papers using vector similarity
+  function compareWithPreviousPapers(paper) {
+    const paperVec = getPaperEmbedding(paper);
+    const similarities = previousPapersEmbeddings.map(prev => ({
+      title: prev.title,
+      keyFindings: prev.keyFindings,
+      similarity: cosineSimilarity(paperVec, prev.embeddingVec)
+    }));
+    similarities.sort((a, b) => b.similarity - a.similarity);
+    return similarities.slice(0, 2);
+  }
+
+  // ---------- PLAN AND EXECUTE AGENT (with error recovery and replanning) ----------
+  class ResearchPlanner {
+    constructor(paperQuery) {
+      this.query = paperQuery;
+      this.plan = [
+        { step: 1, name: "fetchPaper", description: "Retrieve paper from arXiv (API simulation)", retryCount: 0, maxRetries: 1 },
+        { step: 2, name: "summarizeSections", description: "Summarize each section using LLM abstraction" },
+        { step: 3, name: "extractFindings", description: "Extract core contributions and key findings" },
+        { step: 4, name: "comparePapers", description: "Compare with vector DB of previous papers" }
+      ];
+      this.results = {};
+      this.errors = [];
+    }
+
+    async executePlan() {
+      // Step 1: Fetch paper (with error recovery / replanning)
+      let paperData = null;
+      try {
+        paperData = await fetchPaper(this.query);
+        this.results.paper = paperData;
+      } catch (err) {
+        this.errors.push(`Step 1 error: ${err.message}`);
+        // Replanning: attempt to use fallback: try a default popular paper
+        const fallbackAttempt = await fetchPaper("1706.03762");
+        if (fallbackAttempt) {
+          this.results.paper = fallbackAttempt;
+          this.results.replanned = true;
+          this.errors.push(`Replanning: Using default paper "Attention Is All You Need" instead.`);
+        } else {
+          throw new Error(`Critical failure: cannot fetch any paper. Details: ${err.message}`);
+        }
+      }
+
+      // Step 2: Summarize sections (always works if paper exists)
+      try {
+        const summaries = summarizeSections(this.results.paper);
+        this.results.summaries = summaries;
+      } catch (e) {
+        this.errors.push(`Summarization error: ${e.message}`);
+        this.results.summaries = { error: "Could not generate summaries" };
+      }
+
+      // Step 3: Extract key findings
+      try {
+        const findings = extractKeyFindings(this.results.paper, this.results.summaries || {});
+        this.results.keyFindings = findings;
+      } catch (e) {
+        this.errors.push(`Findings extraction error: ${e.message}`);
+        this.results.keyFindings = ["Unable to extract findings due to parsing error."];
+      }
+
+      // Step 4: Compare with vector DB
+      try {
+        const comparisons = compareWithPreviousPapers(this.results.paper);
+        this.results.comparisons = comparisons;
+      } catch (e) {
+        this.errors.push(`Comparison error: ${e.message}`);
+        this.results.comparisons = [];
+      }
+
+      return this.results;
+    }
+
+    getExecutionTrace() {
+      let trace = "";
+      trace += `📋 **Plan**: ${this.plan.map(p => p.description).join(" → ")}\n\n`;
+      if (this.errors.length) {
+        trace += `⚠️ **Recovery/Replanning notes**:\n${this.errors.map(e => `• ${e}`).join("\n")}\n\n`;
+      }
+      return trace;
+    }
+
+    formatFinalOutput() {
+      const paper = this.results.paper;
+      let output = `📄 **Paper Analysis: ${paper.title}** (${paper.year}) by ${paper.authors}\n\n`;
+      output += `📝 **Abstract**: ${paper.abstract}\n\n`;
+      output += `📚 **Section Summaries**:\n`;
+      for (const [sec, summary] of Object.entries(this.results.summaries || {})) {
+        output += `• ${summary}\n`;
+      }
+      output += `\n🔑 **Key Findings**:\n`;
+      this.results.keyFindings?.forEach((f, idx) => { output += `   ${idx+1}. ${f}\n`; });
+      output += `\n🧠 **Comparison with Previous Research (Vector Similarity)**:\n`;
+      if (this.results.comparisons && this.results.comparisons.length) {
+        this.results.comparisons.forEach(comp => {
+          output += `• ${comp.title} (similarity: ${(comp.similarity * 100).toFixed(1)}%) → finding: ${comp.keyFindings}\n`;
+        });
+      } else {
+        output += `   No comparable papers found.\n`;
+      }
+      if (this.results.replanned) {
+        output += `\n🔄 *Note: Original paper not found, replanning triggered — fallback paper used.*\n`;
+      }
+      return output;
+    }
+  }
+
+  // UI Handling + Demo
+  const chatPanel = document.getElementById('chatPanel');
+  const paperInput = document.getElementById('paperQuery');
+  const runBtn = document.getElementById('runPlanBtn');
+
+  function appendAgentMessage(content, isUser = false) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${isUser ? 'user-msg' : ''}`;
+    const bubble = document.createElement('div');
+    bubble.className = isUser ? 'user-bubble' : 'agent-bubble';
+    bubble.innerHTML = content.replace(/\n/g, '<br>');
+    msgDiv.appendChild(bubble);
+    chatPanel.appendChild(msgDiv);
+    chatPanel.scrollTop = chatPanel.scrollHeight;
+  }
+
+  async function runPlannerWorkflow() {
+    const query = paperInput.value.trim();
+    if (!query) {
+      appendAgentMessage("⚠️ Please enter a paper ID or title (e.g., 2106.09685, 1706.03762, 'GPT-3')", false);
+      return;
+    }
+    appendAgentMessage(`🧑‍💻 User request: Analyze paper "${query}"`, true);
+    
+    // Show "planning in progress" message
+    const thinkingDiv = document.createElement('div');
+    thinkingDiv.className = 'message';
+    thinkingDiv.innerHTML = `<div class="agent-bubble" style="background:#e9f3ef;">🧠 Planning & executing multi-step reasoning... (fetching, summarizing, finding key points, comparing)</div>`;
+    chatPanel.appendChild(thinkingDiv);
+    chatPanel.scrollTop = chatPanel.scrollHeight;
+
+    const planner = new ResearchPlanner(query);
+    try {
+      await planner.executePlan();
+      thinkingDiv.remove(); // remove loading message
+      const traceMsg = planner.getExecutionTrace();
+      const finalOutput = planner.formatFinalOutput();
+      const fullMessage = `<div style="margin-bottom: 0.75rem;"><strong>🧩 Plan-and-Execute Agent Trace</strong><br>${traceMsg.replace(/\n/g, '<br>')}</div><div>${finalOutput.replace(/\n/g, '<br>')}</div>`;
+      appendAgentMessage(fullMessage, false);
+    } catch (err) {
+      thinkingDiv.remove();
+      appendAgentMessage(`❌ Planner encountered critical error: ${err.message}. Please try another paper ID or title.`, false);
+    }
+  }
+
+  runBtn.addEventListener('click', runPlannerWorkflow);
+  paperInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') runPlannerWorkflow();
+  });
+</script>
+</body>
+</html>
