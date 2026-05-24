@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic AI - Day 2: Tool Use & Function Calling | Booking Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f0f4f8 0%, #e6edf4 100%);
+      color: #1a2c3e;
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #1E4A6E, #2c7a6e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: #2c5a74;
+      max-width: 750px;
+      margin: 0.8rem auto 0;
+    }
+
+    /* Cards grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+      gap: 1.8rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(2px);
+      border-radius: 1.8rem;
+      padding: 1.7rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255,255,255,0.7);
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      background: white;
+      box-shadow: 0 18px 30px -10px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      border-left: 5px solid #2c7a6e;
+      padding-left: 0.9rem;
+      color: #0a2a3b;
+    }
+
+    .badge {
+      background: #deeef5;
+      padding: 0.25rem 0.8rem;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #1e6f5c;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+
+    .tool-demo {
+      background: #f4f9fe;
+      border-radius: 1rem;
+      padding: 0.8rem;
+      margin: 0.8rem 0;
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
+
+    /* Demo Section */
+    .assistant-section {
+      background: white;
+      border-radius: 2rem;
+      padding: 2rem;
+      box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.12);
+      margin-top: 0.5rem;
+      border: 1px solid #dce7ef;
+    }
+
+    .assistant-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 1.2rem;
+    }
+
+    .assistant-header h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1a5d6e;
+    }
+
+    .tool-badge {
+      background: #e9f3ea;
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+
+    .chat-container {
+      background: #fafcfd;
+      border-radius: 1.5rem;
+      padding: 1.2rem;
+      max-height: 360px;
+      overflow-y: auto;
+      border: 1px solid #dce9f2;
+      margin-bottom: 1.5rem;
+    }
+
+    .message {
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 0.8rem;
+    }
+
+    .user-message {
+      justify-content: flex-end;
+    }
+
+    .user-bubble {
+      background: #1f6e6e;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 1.6rem;
+      max-width: 85%;
+      font-size: 0.9rem;
+    }
+
+    .agent-bubble {
+      background: #edf4f9;
+      color: #1f3e4b;
+      padding: 0.7rem 1.2rem;
+      border-radius: 1.6rem;
+      max-width: 90%;
+      font-size: 0.9rem;
+      border: 1px solid #d0e2ed;
+    }
+
+    .tool-call-card {
+      background: #f0f6fa;
+      margin: 8px 0;
+      padding: 6px 12px;
+      border-radius: 14px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      border-left: 3px solid #2c7a6e;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 0.5rem;
+    }
+
+    #userIntent {
+      flex: 1;
+      padding: 0.9rem 1.2rem;
+      border-radius: 2rem;
+      border: 1px solid #cfe0e8;
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    #userIntent:focus {
+      border-color: #2c7a6e;
+      box-shadow: 0 0 0 3px rgba(44,122,110,0.2);
+    }
+
+    button {
+      background: #2c7a6e;
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0 2rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #1d5f54;
+    }
+
+    .flight-card, .hotel-card {
+      background: white;
+      border-radius: 14px;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #e2ecf3;
+    }
+
+    hr {
+      margin: 12px 0;
+      border: 0;
+      height: 1px;
+      background: linear-gradient(to right, #cfe0e8, transparent);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 2.5rem;
+      font-size: 0.75rem;
+      color: #6f8ea0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>🧰 Day 2: Tool Use & Function Calling</h1>
+    <p>Designing tools, structured outputs, tool selection strategies — applied to a Flight & Hotel Booking Assistant</p>
+  </div>
+
+  <!-- Theoretical details: what/why/how/where -->
+  <div class="grid">
+    <div class="card">
+      <div class="badge">⚙️ Core Concept</div>
+      <h2>What is Tool Use & Function Calling?</h2>
+      <p><strong>Tool use</strong> enables LLM agents to interact with external systems: APIs, databases, calculators, or business logic. <strong>Function calling</strong> is the structured way LLMs decide which tool to invoke, with what arguments, based on user intent.</p>
+      <p><strong>Why?</strong> LLMs alone cannot fetch live data, perform bookings, or execute actions. Tool calling bridges the gap between reasoning and real-world impact.</p>
+      <div class="tool-demo">📌 Example: User: "Book a flight to NYC on June 10" → Agent calls <code>search_flights(city="NYC", date="2025-06-10")</code> → presents options → calls <code>book_flight(flight_id)</code>.</div>
+    </div>
+
+    <div class="card">
+      <div class="badge">🔨 How & Design</div>
+      <h2>Designing Tools & Output Parsing</h2>
+      <p><strong>Tool design:</strong> define name, description, input schema (JSON). Tools can be APIs (e.g., flight search), calculators, search engines. <strong>Structured output parsing</strong> ensures the agent returns consistent data (e.g., Pydantic/JSON schema).</p>
+      <p><strong>Tool selection strategies:</strong> rule-based (if keywords match), LLM-driven (few-shot prompting), or semantic router. In production, hybrid approaches combine intent classification + dynamic tool selection.</p>
+      <div class="tool-demo">🔧 Flight tool, hotel tool, booking tool: each with typed parameters. Agent selects the correct tool by analyzing the user prompt.</div>
+    </div>
+
+    <div class="card">
+      <div class="badge">🧭 Use-case: Travel Assistant</div>
+      <h2>Flight & Hotel Booking Assistant</h2>
+      <p><strong>Where & Why:</strong> Travel booking requires real-time search, multi-step interactions, and atomic booking actions. Agent must orchestrate: search flights → search hotels → reserve flight ID → confirm booking.</p>
+      <p><strong>Task implementation:</strong> Three tools: <code>search_flights(city, date)</code>, <code>search_hotels(city)</code>, <code>book_flight(flight_id)</code>. Agent infers user intent, calls the correct tool, and presents structured results. Handles multi-turn conversation.</p>
+    </div>
+  </div>
+
+  <!-- Live assistant demo -->
+  <div class="assistant-section">
+    <div class="assistant-header">
+      <h2>✈️ Agentic Travel Assistant (Tool Calling Demo)</h2>
+      <span class="tool-badge">🔌 Tools: search_flights | search_hotels | book_flight</span>
+    </div>
+    <p><strong>How it works:</strong> AI agent uses function calling logic. Choose tool based on intent: "flights to London" triggers search_flights; "hotels in Paris" triggers search_hotels; "book flight ID F123" triggers book_flight. Structured output is shown step by step.</p>
+    
+    <div class="chat-container" id="chatLog">
+      <div class="message">
+        <div class="agent-bubble">
+          ✈️ <strong>Travel Assistant ready!</strong> I can search flights, find hotels, and book flights. Try:<br>
+          • "Show me flights to Tokyo on 2025-07-15"<br>
+          • "Find hotels in Paris"<br>
+          • "Book flight with ID FL789" (after searching)
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="userIntent" placeholder="e.g., search flights from NYC to London on June 1st" autocomplete="off">
+      <button id="sendBtn">Send ▶</button>
+    </div>
+    <div class="info-note" style="font-size:0.7rem; margin-top: 12px; color:#476b7a;">
+      💡 Agent uses tool selection strategy: intent classification + keyword matching + dynamic arguments. Simulated flight/hotel database. Booking requires flight ID from search results.
+    </div>
+  </div>
+  <footer>
+    🔍 Tool Use & Function Calling | Agent chooses tool based on structured prompt | Flight/Hotel booking assistant with realistic tool orchestration
+  </footer>
+</div>
+
+<script>
+  // ----------------------------------------------
+  // TOOLS DEFINITIONS (Flight, Hotel, Booking)
+  // Simulated databases
+  // ----------------------------------------------
+  
+  // Mock flight data
+  const flightsDB = [
+    { id: "FL101", from: "NYC", to: "London", date: "2025-06-10", price: 450, airline: "Atlantic Air" },
+    { id: "FL102", from: "NYC", to: "London", date: "2025-06-10", price: 390, airline: "SkyExpress" },
+    { id: "FL203", from: "LAX", to: "Tokyo", date: "2025-07-15", price: 820, airline: "Pacific Wings" },
+    { id: "FL204", from: "LAX", to: "Tokyo", date: "2025-07-15", price: 770, airline: "NipponFly" },
+    { id: "FL305", from: "Chicago", to: "Paris", date: "2025-08-01", price: 610, airline: "EuroJet" },
+    { id: "FL410", from: "NYC", to: "Paris", date: "2025-08-10", price: 540, airline: "TransAtlantic" },
+    { id: "FL789", from: "Boston", to: "Miami", date: "2025-09-05", price: 210, airline: "SunAir" },
+  ];
+
+  const hotelsDB = [
+    { id: "HOT001", city: "Paris", name: "Hotel Eiffel View", pricePerNight: 180, stars: 4 },
+    { id: "HOT002", city: "Paris", name: "Champs Elysees Inn", pricePerNight: 250, stars: 5 },
+    { id: "HOT003", city: "Tokyo", name: "Shinjuku Central Hotel", pricePerNight: 130, stars: 3 },
+    { id: "HOT004", city: "Tokyo", name: "Cherry Blossom Suites", pricePerNight: 210, stars: 4 },
+    { id: "HOT005", city: "London", name: "Thames Riverside", pricePerNight: 165, stars: 4 },
+    { id: "HOT006", city: "London", name: "Covent Garden Stay", pricePerNight: 200, stars: 4 },
+    { id: "HOT007", city: "NYC", name: "Manhattan Downtown Hotel", pricePerNight: 290, stars: 4 },
+  ];
+
+  let bookedFlights = []; // store booking confirmations
+
+  // TOOL 1: search_flights(city, date) - city is destination
+  function searchFlights(destinationCity, date) {
+    const results = flightsDB.filter(flight => 
+      flight.to.toLowerCase() === destinationCity.toLowerCase() && flight.date === date
+    );
+    if (results.length === 0) {
+      return { success: true, flights: [], message: `No flights found to ${destinationCity} on ${date}. Try another date or city.` };
+    }
+    return { success: true, flights: results.map(f => ({ id: f.id, from: f.from, to: f.to, date: f.date, price: f.price, airline: f.airline })) };
+  }
+
+  // TOOL 2: search_hotels(city)
+  function searchHotels(city) {
+    const results = hotelsDB.filter(hotel => hotel.city.toLowerCase() === city.toLowerCase());
+    if (results.length === 0) {
+      return { success: true, hotels: [], message: `No hotels found in ${city}.` };
+    }
+    return { success: true, hotels: results.map(h => ({ id: h.id, name: h.name, pricePerNight: h.pricePerNight, stars: h.stars })) };
+  }
+
+  // TOOL 3: book_flight(flight_id)
+  function bookFlight(flightId) {
+    const flight = flightsDB.find(f => f.id === flightId);
+    if (!flight) {
+      return { success: false, error: `Flight with ID ${flightId} not found.` };
+    }
+    const bookingRef = `BK-${Math.floor(Math.random() * 10000)}`;
+    bookedFlights.push({ flightId, bookingRef, details: flight });
+    return { success: true, bookingReference: bookingRef, flightDetails: flight };
+  }
+
+  // ----------------------------------------------
+  // Agent: Tool Selection & Intent Parsing (function calling simulation)
+  // We implement a robust rule + LLM-like intent classifier
+  // ----------------------------------------------
+  function parseIntentAndCallTools(userMessage) {
+    const lowerMsg = userMessage.toLowerCase();
+    // Determine primary intent: flight_search, hotel_search, book_flight
+    let intent = null;
+    let extractedParams = {};
+
+    // Booking intent: "book flight", "reserve flight", "book flight id"
+    if (lowerMsg.includes("book flight") || lowerMsg.includes("reserve flight") || (lowerMsg.includes("book") && lowerMsg.includes("id"))) {
+      intent = "book_flight";
+      // Try to extract flight ID (pattern like FL101, FL789, code)
+      const idMatch = userMessage.match(/\b(FL\d{2,4}|[A-Z]{2}\d{2,4})\b/i);
+      if (idMatch) {
+        extractedParams.flight_id = idMatch[0].toUpperCase();
+      } else {
+        // fallback: maybe last word like "FL789"
+        const words = userMessage.split(' ');
+        for (let w of words) {
+          if (w.match(/^[A-Z]{2}\d+$/i)) {
+            extractedParams.flight_id = w.toUpperCase();
+            break;
+          }
+        }
+      }
+    } 
+    else if (lowerMsg.includes("flight") || (lowerMsg.includes("fly") && (lowerMsg.includes("to") || lowerMsg.includes("from"))) || lowerMsg.includes("search flight")) {
+      intent = "search_flights";
+      // extract destination city & date
+      let city = "";
+      let date = "";
+      // simple extraction: look for "to City" or "flights to London"
+      const toMatch = userMessage.match(/to\s+([A-Za-z\s]+?)(?: on | for |$)/i);
+      if (toMatch) city = toMatch[1].trim();
+      else {
+        const cityFallback = userMessage.match(/flights?\s+(?:to\s+)?([A-Z][a-z]+)/i);
+        if (cityFallback) city = cityFallback[1];
+      }
+      // date extraction: YYYY-MM-DD or Month DD, YYYY or similar
+      const dateMatch = userMessage.match(/\b(\d{4}-\d{1,2}-\d{1,2}|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4})\b/i);
+      if (dateMatch) {
+        let rawDate = dateMatch[0];
+        // try to convert natural dates to YYYY-MM-DD
+        if (rawDate.match(/\d{4}-\d{1,2}-\d{1,2}/)) date = rawDate;
+        else {
+          const parsed = new Date(rawDate);
+          if (!isNaN(parsed)) date = parsed.toISOString().split('T')[0];
+          else date = rawDate;
+        }
+      } else {
+        // default date if not found: just use a placeholder but we can set null
+        date = "";
+      }
+      extractedParams.city = city || "";
+      extractedParams.date = date || "";
+    }
+    else if (lowerMsg.includes("hotel") || lowerMsg.includes("stay") || lowerMsg.includes("accommodation")) {
+      intent = "search_hotels";
+      let hotelCity = "";
+      const cityMatch = userMessage.match(/hotels?\s+in\s+([A-Za-z\s]+)/i);
+      if (cityMatch) hotelCity = cityMatch[1].trim();
+      else {
+        const words = userMessage.split(' ');
+        for (let i = 0; i < words.length; i++) {
+          if (words[i].toLowerCase() === "in" && words[i+1]) hotelCity = words[i+1];
+        }
+      }
+      extractedParams.city = hotelCity || "";
+    }
+    else {
+      intent = "unknown";
+    }
+    
+    return { intent, params: extractedParams };
+  }
+
+  // Execute tools based on resolved intent
+  function executeToolCall(intent, params) {
+    if (intent === "search_flights") {
+      if (!params.city) return { tool: "search_flights", error: "Missing destination city.", output: null };
+      const date = params.date || "2025-07-15"; // fallback demo date
+      const result = searchFlights(params.city, date);
+      return { tool: "search_flights", output: result, params: { city: params.city, date } };
+    }
+    else if (intent === "search_hotels") {
+      if (!params.city) return { tool: "search_hotels", error: "Missing city for hotel search.", output: null };
+      const result = searchHotels(params.city);
+      return { tool: "search_hotels", output: result, params: { city: params.city } };
+    }
+    else if (intent === "book_flight") {
+      if (!params.flight_id) return { tool: "book_flight", error: "Please provide a valid flight ID (e.g., FL101).", output: null };
+      const result = bookFlight(params.flight_id);
+      return { tool: "book_flight", output: result, params: { flight_id: params.flight_id } };
+    }
+    else {
+      return { tool: "none", error: "Could not determine intent. I can search flights, search hotels, or book a flight.", output: null };
+    }
+  }
+
+  // Format final response
+  function formatAgentResponse(toolResult, intent) {
+    if (toolResult.error) {
+      return `⚠️ ${toolResult.error}`;
+    }
+    if (intent === "search_flights" && toolResult.output) {
+      const flights = toolResult.output.flights;
+      if (!flights.length) return `✈️ No flights found to ${toolResult.params.city} on ${toolResult.params.date}. Try different dates.`;
+      let response = `✈️ **Flights to ${toolResult.params.city} on ${toolResult.params.date}:**\n`;
+      flights.forEach(f => {
+        response += `\n• ${f.id}: ${f.from} → ${f.to} | ${f.airline} | $${f.price} | Date: ${f.date}`;
+      });
+      response += `\n\n💡 To book, say: "Book flight ${flights[0].id}"`;
+      return response;
+    }
+    else if (intent === "search_hotels" && toolResult.output) {
+      const hotels = toolResult.output.hotels;
+      if (!hotels.length) return `🏨 No hotels found in ${toolResult.params.city}. Try another city.`;
+      let response = `🏨 **Hotels in ${toolResult.params.city}:**\n`;
+      hotels.forEach(h => {
+        response += `\n• ${h.name} | ⭐ ${h.stars} stars | $${h.pricePerNight}/night`;
+      });
+      return response;
+    }
+    else if (intent === "book_flight" && toolResult.output) {
+      if (toolResult.output.success) {
+        const details = toolResult.output.flightDetails;
+        return `✅ **Booking confirmed!** Reference: ${toolResult.output.bookingReference}\nFlight ${details.id}: ${details.from} → ${details.to} on ${details.date} (${details.airline}). Total: $${details.price}. Thank you!`;
+      } else {
+        return `❌ Booking failed: ${toolResult.output.error}`;
+      }
+    }
+    return "I can help with flight searches, hotel searches, and flight bookings. Please rephrase your request.";
+  }
+
+  // Agentic flow: generate reasoning about tool selection + call
+  function runAgentWithToolCalling(userQuery) {
+    // Step 1: Reasoning & intent detection
+    const { intent, params } = parseIntentAndCallTools(userQuery);
+    let reasoning = `🧠 Reasoning: Analyzing query — `;
+    if (intent === "search_flights") reasoning += `detected flight search intent. Will call 'search_flights' with destination=${params.city || "?"}, date=${params.date || "auto"}.`;
+    else if (intent === "search_hotels") reasoning += `detected hotel search intent. Using 'search_hotels' tool for city=${params.city || "unknown"}.`;
+    else if (intent === "book_flight") reasoning += `detected booking intent. Using 'book_flight' tool with flight ID=${params.flight_id || "not provided"}.`;
+    else reasoning += `could not confidently identify tool. Suggest available tools.`;
+    
+    // Step 2: Execute correct tool
+    const toolResult = executeToolCall(intent, params);
+    // Step 3: Format final response with observation
+    let finalAnswer = formatAgentResponse(toolResult, intent);
+    if (toolResult.tool) {
+      finalAnswer = `🔧 Tool Called: ${toolResult.tool}\n📥 ${finalAnswer}`;
+    }
+    return { reasoning, finalAnswer, toolUsed: toolResult.tool };
+  }
+
+  // DOM manipulation
+  const chatContainer = document.getElementById('chatLog');
+  const inputEl = document.getElementById('userIntent');
+  const sendButton = document.getElementById('sendBtn');
+
+  function appendMessage(role, content, isToolCall = false) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${role === 'user' ? 'user-message' : ''}`;
+    const bubbleClass = role === 'user' ? 'user-bubble' : 'agent-bubble';
+    const innerDiv = document.createElement('div');
+    innerDiv.className = bubbleClass;
+    if (isToolCall) innerDiv.style.fontFamily = "monospace";
+    innerDiv.innerHTML = content.replace(/\n/g, '<br>');
+    msgDiv.appendChild(innerDiv);
+    chatContainer.appendChild(msgDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  function handleUserQuery() {
+    const query = inputEl.value.trim();
+    if (!query) return;
+    appendMessage('user', query);
+    inputEl.value = '';
+
+    // Agent processing (simulate ReAct + Tool selection)
+    const { reasoning, finalAnswer, toolUsed } = runAgentWithToolCalling(query);
+    // Display reasoning and tool call in a pretty way
+    const fullAgentMsg = `<div style="margin-bottom: 6px;">💭 ${reasoning}</div><div>✨ ${finalAnswer}</div>`;
+    appendMessage('agent', fullAgentMsg, false);
+  }
+
+  sendButton.addEventListener('click', handleUserQuery);
+  inputEl.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleUserQuery();
+  });
+</script>
+</body>
+</html>
