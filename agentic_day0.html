@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Agentic AI Framework | Architecture & Workflow Diagram</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #eef2f7 0%, #dce5ef 100%);
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Roboto', sans-serif;
+            padding: 2rem 1.5rem;
+            color: #0a1c2f;
+        }
+
+        /* main container */
+        .diagram-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.5);
+            border-radius: 3rem;
+            backdrop-filter: blur(2px);
+            box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25);
+            padding: 1.8rem 1.8rem 2.5rem;
+        }
+
+        /* header */
+        .title-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .title-section h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0b2b44, #1c6e94);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.01em;
+        }
+        .title-section .sub {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #2c4c6e;
+            background: #eef3fcbb;
+            display: inline-block;
+            padding: 0.3rem 1.5rem;
+            border-radius: 40px;
+            margin-top: 0.6rem;
+            backdrop-filter: blur(2px);
+        }
+
+        /* Two-column layout for architecture image + workflow details */
+        .archi-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: 2.2rem;
+        }
+
+        .archi-card {
+            flex: 1.2;
+            background: #ffffffdd;
+            backdrop-filter: blur(4px);
+            border-radius: 2rem;
+            padding: 1.2rem;
+            box-shadow: 0 12px 22px -12px rgba(0,0,0,0.1);
+            border: 1px solid rgba(80, 140, 180, 0.4);
+            transition: all 0.2s;
+        }
+
+        .workflow-card {
+            flex: 1;
+            background: #fafeffdd;
+            backdrop-filter: blur(4px);
+            border-radius: 2rem;
+            padding: 1.2rem;
+            border: 1px solid rgba(70, 140, 180, 0.4);
+        }
+
+        .section-head {
+            font-weight: 700;
+            font-size: 1.2rem;
+            border-left: 5px solid #2c8fbc;
+            padding-left: 0.9rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Architecture SVG style (pure HTML/CSS diagram image) */
+        .arch-svg-container {
+            background: #f8fbfe;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .arch-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .agent-layer {
+            background: linear-gradient(110deg, #e9f2fa, #ffffff);
+            border-radius: 1.8rem;
+            padding: 0.8rem;
+            border: 1px solid #bdd8ef;
+        }
+
+        .layer-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: #1f6d93;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        .components-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.7rem;
+        }
+
+        .comp {
+            background: white;
+            border-radius: 2rem;
+            padding: 0.4rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #125a7c;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #cde2f0;
+        }
+
+        .memory-tools-area {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.6rem;
+        }
+        .mem, .tools-set {
+            flex: 1;
+            background: #ecf4fa;
+            border-radius: 1.2rem;
+            padding: 0.6rem;
+            text-align: center;
+        }
+
+        .arrow-down {
+            font-size: 1.6rem;
+            color: #5282a3;
+            margin: -0.2rem 0;
+        }
+
+        /* detailed workflow inline */
+        .flow-diagram {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.4rem;
+            margin: 1rem 0;
+        }
+
+        .flow-node {
+            background: white;
+            border-radius: 2rem;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-align: center;
+            min-width: 90px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            border: 1px solid #bdd8ea;
+            color: #115d80;
+        }
+
+        .arrow-symbol {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #6c9ebd;
+        }
+
+        .decision-branch {
+            background: #eef3f9;
+            border-radius: 1.2rem;
+            padding: 0.7rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin: 0.5rem 0;
+        }
+        .branch-item {
+            background: white;
+            border-radius: 1.2rem;
+            padding: 0.3rem 0.9rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border-left: 3px solid #48a2c7;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            background: #e4edf5aa;
+            border-radius: 2rem;
+            padding: 0.6rem 1rem;
+        }
+
+        @media (max-width: 780px) {
+            body { padding: 1rem; }
+            .archi-row { flex-direction: column; }
+            .flow-node { min-width: 70px; font-size: 0.7rem; }
+        }
+
+        .btn-note {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 1rem;
+            opacity: 0.7;
+        }
+        hr {
+            margin: 0.8rem 0;
+            border-color: #cde0ed;
+        }
+    </style>
+</head>
+<body>
+<div class="diagram-container">
+    <div class="title-section">
+        <h1>🧠 Agentic AI Framework</h1>
+        <div class="sub">Autonomous Agents · Memory · Tools · Iterative Workflow</div>
+    </div>
+
+    <!-- Architecture Image Section + Workflow Side-by-Side -->
+    <div class="archi-row">
+        <!-- Left side: Architecture Diagram as pure CSS/HTML image -->
+        <div class="archi-card">
+            <div class="section-head">
+                <span>🏛️</span> System Architecture Diagram
+            </div>
+            <div class="arch-svg-container">
+                <div class="arch-diagram">
+                    <!-- Perception / Input layer -->
+                    <div class="agent-layer">
+                        <div class="layer-title">📡 INPUT & CONTEXT</div>
+                        <div class="components-row">
+                            <span class="comp">User Query</span>
+                            <span class="comp">Environment State</span>
+                            <span class="comp">Goals</span>
+                            <span class="comp">Historical Context</span>
+                        </div>
+                    </div>
+                    <div class="arrow-down">▼</div>
+                    <!-- Agentic Core (Brain) -->
+                    <div class="agent-layer" style="background: linear-gradient(115deg, #e1eff9, #ffffff);">
+                        <div class="layer-title">🤖 AGENTIC CORE (Orchestrator)</div>
+                        <div class="components-row">
+                            <span class="comp">🧠 LLM Reasoner</span>
+                            <span class="comp">📋 Planner (CoT/ToT)</span>
+                            <span class="comp">🔄 Reflection Loop</span>
+                            <span class="comp">🎯 Decision Engine</span>
+                        </div>
+                        <div class="memory-tools-area">
+                            <div class="mem">
+                                <strong>🧬 Memory</strong>
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 5px;">
+                                    <span class="comp" style="background:#eef;">STM</span>
+                                    <span class="comp" style="background:#eef;">LTM</span>
+                                    <span class="comp" style="background:#eef;">Vector DB</span>
+                                </div>
+                            </div>
+                            <div class="tools-set">
+                                <strong>🔧 Tool Interface</strong>
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 5px;">
+                                    <span class="comp" style="background:#eef;">Search</span>
+                                    <span class="comp" style="background:#eef;">APIs</span>
+                                    <span class="comp" style="background:#eef;">Code</span>
+                                    <span class="comp" style="background:#eef;">RAG</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="arrow-down">▼</div>
+                    <!-- Execution & Output -->
+                    <div class="agent-layer">
+                        <div class="layer-title">⚙️ EXECUTION & OUTPUT</div>
+                        <div class="components-row">
+                            <span class="comp">Action Invocation</span>
+                            <span class="comp">Tool Call Results</span>
+                            <span class="comp">Final Answer / Report</span>
+                        </div>
+                    </div>
+                    <div class="arrow-down" style="font-size: 1rem;">↻</div>
+                    <div style="font-size: 0.7rem; color: #2b6a8a; font-weight: 500;">Continuous Feedback & Learning Loop</div>
+                </div>
+                <div class="btn-note">📐 Multi-layer agentic architecture: Perception → Reason → Act → Reflect</div>
+            </div>
+        </div>
+
+        <!-- Right Side: Detailed Workflow Diagram Image style -->
+        <div class="workflow-card">
+            <div class="section-head">
+                <span>🔄</span> Agent Workflow Design (ReAct + Plan-Execute)
+            </div>
+            <div style="background: #fafeff; border-radius: 1.5rem; padding: 0.5rem;">
+                <!-- Primary Steps -->
+                <div class="flow-diagram">
+                    <div class="flow-node">1️⃣ Observe</div>
+                    <div class="arrow-symbol">→</div>
+                    <div class="flow-node">2️⃣ Reason</div>
+                    <div class="arrow-symbol">→</div>
+                    <div class="flow-node">3️⃣ Plan</div>
+                    <div class="arrow-symbol">→</div>
+                    <div class="flow-node">4️⃣ Act (Tool)</div>
+                </div>
+                <!-- Decision branching -->
+                <div class="decision-branch">
+                    <div class="branch-item">🔀 Need external tool? → Yes: Call API / Search / Execute</div>
+                    <div class="branch-item">💭 Internal reasoning → Update memory, re-evaluate</div>
+                </div>
+                <div class="flow-diagram">
+                    <div class="flow-node">📥 Gather Observation</div>
+                    <div class="arrow-symbol">→</div>
+                    <div class="flow-node">🧠 Reflect & Critique</div>
+                    <div class="arrow-symbol">→</div>
+                    <div class="flow-node">✅ Goal Satisfied?</div>
+                </div>
+                <!-- Conditional Loops -->
+                <div style="display: flex; justify-content: center; gap: 1rem; margin: 0.4rem 0;">
+                    <span style="background:#deeaf3; border-radius: 50px; padding: 0.2rem 1rem; font-size:0.7rem;">🔁 if not: iterate (Re-plan)</span>
+                    <span style="background:#deeaf3; border-radius: 50px; padding: 0.2rem 1rem; font-size:0.7rem;">✔️ if yes: Final output</span>
+                </div>
+                <!-- Final output node -->
+                <div style="text-align: center; margin-top: 0.8rem;">
+                    <div class="flow-node" style="background: #cae3f2; font-weight: 800; border-color: #3582a5;">✨ Deliver Answer / Action Result ✨</div>
+                </div>
+                <!-- extra micro description -->
+                <hr>
+                <div style="font-size:0.7rem; text-align: center; display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                    <span>🧩 Memory retrieval at each reasoning step</span>
+                    <span>🔁 Tool use loop max iterations</span>
+                    <span>⚡ Parallel tool calls possible</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional integrated: full framework with multi-agent, orchestration layers (detailed) -->
+    <div style="background: #f2f8fecc; border-radius: 1.8rem; padding: 1.2rem; margin-top: 0.8rem;">
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start;">
+            <div style="flex: 1.5;">
+                <div style="font-weight: 800; font-size: 1rem; display: flex; gap: 8px; align-items: center;">🧩 Modular Agentic Framework Layers</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 12px;">
+                    <span style="background:white; border-radius: 60px; padding:0.2rem 0.8rem; font-size:0.75rem;">🌐 Perception Layer</span>
+                    <span style="background:white; border-radius: 60px; padding:0.2rem 0.8rem; font-size:0.75rem;">🧠 Core Reasoning</span>
+                    <span style="background:white; border-radius: 60px; padding:0.2rem 0.8rem; font-size:0.75rem;">📚 Memory Hub</span>
+                    <span style="background:white; border-radius: 60px; padding:0.2rem 0.8rem; font-size:0.75rem;">🔌 Tool Registry</span>
+                    <span style="background:white; border-radius: 60px; padding:0.2rem 0.8rem; font-size:0.75rem;">⚙️ Executor</span>
+                    <span style="background:white; border-radius: 60px; padding:0.2rem 0.8rem; font-size:0.75rem;">📊 Monitoring</span>
+                </div>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: 800; font-size: 0.9rem;">🤝 Multi-Agent Collaboration (optional)</div>
+                <div style="font-size:0.7rem; margin-top: 5px;">Supervisor delegates → Specialized agents (coder, researcher, analyst) → Consensus & merge</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- expanded workflow orchestration steps (clear diagram) -->
+    <div style="margin-top: 1.5rem; background: #ffffffc9; border-radius: 1.8rem; padding: 1rem;">
+        <div style="font-weight: 700; margin-bottom: 0.8rem;">📋 Execution Workflow: Step-by-Step Agent Cycle</div>
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.6rem;">
+            <div style="flex:1; text-align:center; background:#eff4fa; border-radius:1rem; padding:0.6rem;"><strong>1. Goal reception</strong><br><span style="font-size:0.7rem;">parse user intent</span></div>
+            <div style="flex:1; text-align:center; background:#eff4fa; border-radius:1rem; padding:0.6rem;"><strong>2. Context & Memory fetch</strong><br><span style="font-size:0.7rem;">retrieve relevant knowledge</span></div>
+            <div style="flex:1; text-align:center; background:#eff4fa; border-radius:1rem; padding:0.6rem;"><strong>3. Plan generation</strong><br><span style="font-size:0.7rem;">subtasks, tool mapping</span></div>
+            <div style="flex:1; text-align:center; background:#eff4fa; border-radius:1rem; padding:0.6rem;"><strong>4. Execute step</strong><br><span style="font-size:0.7rem;">call tools / compute</span></div>
+            <div style="flex:1; text-align:center; background:#eff4fa; border-radius:1rem; padding:0.6rem;"><strong>5. Observe & Store</strong><br><span style="font-size:0.7rem;">update memory, log</span></div>
+            <div style="flex:1; text-align:center; background:#eff4fa; border-radius:1rem; padding:0.6rem;"><strong>6. Evaluate & Reflect</strong><br><span style="font-size:0.7rem;">decide next or finish</span></div>
+        </div>
+        <div style="text-align: center; margin-top: 1rem;">
+            <div style="display: inline-block; background:#e2ecf5; border-radius: 40px; padding:0.2rem 1rem; font-size:0.7rem;">🔁 Loop from step 3→6 until goal completion or max iterations</div>
+        </div>
+    </div>
+
+    <!-- Advanced: Tools & Memory integration diagram integrated (architecture) -->
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem;">
+        <div style="flex: 1; background: #eef4fae6; border-radius: 1.5rem; padding: 0.8rem;">
+            <div style="font-weight: 800; display: flex; gap: 6px;">📀 Memory Architecture</div>
+            <div style="font-size:0.7rem; margin-top: 6px;">Working Memory → Episodic Buffer → Long-term Vector Store → Retrieval augmented generation</div>
+            <div class="components-row" style="margin-top: 8px;">
+                <span class="comp">Chroma/Pinecone</span>
+                <span class="comp">Semantic Cache</span>
+                <span class="comp">Conversation History</span>
+            </div>
+        </div>
+        <div style="flex: 1; background: #eef4fae6; border-radius: 1.5rem; padding: 0.8rem;">
+            <div style="font-weight: 800; display: flex; gap: 6px;">🪛 Tool Integration Protocol</div>
+            <div style="font-size:0.7rem; margin-top: 6px;">OpenAPI · Function calling · Code interpreter · Browser automation · External APIs</div>
+            <div class="components-row" style="margin-top: 8px;">
+                <span class="comp">REST</span>
+                <span class="comp">GraphQL</span>
+                <span class="comp">Python Sandbox</span>
+                <span class="comp">WebSocket</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- legend and summary image note -->
+    <div class="legend">
+        <span>🧠 Agentic Core: Planner + Reasoner + Memory</span>
+        <span>⚙️ Workflow Diagram: ReAct pattern with decision branch</span>
+        <span>🔄 Continuous feedback loop & self-reflection</span>
+        <span>📦 Extensible tool set for dynamic actions</span>
+    </div>
+    <div style="text-align: center; font-size: 0.7rem; margin-top: 1rem; background: #dae9f3; width: fit-content; margin-inline: auto; padding: 0.3rem 1.2rem; border-radius: 40px;">
+        🧩 Agentic AI Framework — Comprehensive design diagram: Architecture (left) + Workflow steps (right)
+    </div>
+</div>
+</body>
+</html>
